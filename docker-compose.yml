@@ -1,0 +1,43 @@
+services:
+
+  laravel:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+    container_name: nextplay-dev-laravel
+    restart: unless-stopped
+    volumes:
+      - ./:/app
+    networks:
+      - nextplay-dev-back
+    depends_on:
+      - db
+    ports:
+      - "80:8000"
+
+  db:
+    image: postgres:latest
+    env_file:
+      - .env
+    container_name: nextplay-dev-db
+    restart: unless-stopped
+    networks:
+      - nextplay-dev-back
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: api
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - nextplay-postgres:/var/lib/postgresql/data
+      - ./docker/dev/sql:/docker-entrypoint-initdb.d:ro
+
+networks:
+  nextplay-dev-back:
+    driver: bridge
+
+volumes:
+  nextplay-postgres:

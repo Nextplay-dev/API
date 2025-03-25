@@ -1,0 +1,8 @@
+.git
+.github
+.gitignore
+.env.example
+.gitattributes
+Makefile
+README.md
+docker-compose.yml

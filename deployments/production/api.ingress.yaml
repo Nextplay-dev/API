@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-ingress
+  namespace: production
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: production-redirect@kubernetescrd
+    cert-manager.io/cluster-issuer: letsencrypt-production
+spec:
+  rules:
+  - host: api.nextplay.rigidd.app
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: api-service
+            port: 
+              number: 80
+  tls:
+  - hosts:
+    - api.nextplay.rigidd.app
+    secretName: nextplay-api-tls
