@@ -56,7 +56,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Deploy to Production
-        run: kubectl apply -f deployments
+        run: kubectl apply -f deployments/production
 
       - name: Rollout restart deployment
         run: kubectl rollout restart deployment api --namespace=production
