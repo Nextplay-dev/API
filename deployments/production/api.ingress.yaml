@@ -2,9 +2,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: api-ingress
-  namespace: production
+  namespace: nextplay-production
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: production-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: nextplay-production-redirect@kubernetescrd
     cert-manager.io/cluster-issuer: letsencrypt-production
 spec:
   rules:

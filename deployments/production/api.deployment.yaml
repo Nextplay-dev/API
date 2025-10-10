@@ -4,7 +4,7 @@ metadata:
   name: api
   labels:
     app: api
-  namespace: production
+  namespace: nextplay-production
 spec:
   replicas: 1
   strategy:
@@ -37,7 +37,7 @@ spec:
             name: api-config
         env:
           - name: APP_ENV
-            value: production
+            value: nextplay-production
           - name: DB_USERNAME
             valueFrom:
               secretKeyRef:
@@ -57,4 +57,7 @@ spec:
         resources:
           limits:
             memory: "1524Mi"
-            cpu: "30m"
+            cpu: "300m"
+          requests:
+            memory: "512Mi"
+            cpu: "100m"

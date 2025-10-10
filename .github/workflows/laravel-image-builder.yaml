@@ -59,4 +59,4 @@ jobs:
         run: kubectl apply -f deployments/production
 
       - name: Rollout restart deployment
-        run: kubectl rollout restart deployment api --namespace=production
+        run: kubectl rollout restart deployment api --namespace=nextplay-production
