@@ -14,10 +14,12 @@ jobs:
   build-and-push-image:
     strategy:
       matrix:
-        runner-label:
-          - nextplay-runner
-          - nextplay-runner-arm
-    runs-on: ${{ matrix.runner-label }}
+        include:
+          - arch: amd64
+            runner: nextplay-runner
+          - arch: arm64
+            runner: nextplay-runner-arm
+    runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
       packages: write
