@@ -53,8 +53,8 @@ jobs:
           push: true
           platforms: linux/${{ matrix.arch }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.arch }}-${{ steps.meta.outputs.tags }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.arch }}-${{ github.sha }}
+            ${{ steps.meta.outputs.tags }}-${{ matrix.arch }}
+            ${{ steps.meta.outputs.tags }}-${{ matrix.arch }}-${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
 
   merge-images:
