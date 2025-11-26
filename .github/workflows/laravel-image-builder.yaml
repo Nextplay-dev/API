@@ -78,17 +78,17 @@ jobs:
       - name: Create and push multi-arch manifest
         run: |
           docker buildx imagetools create \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }} \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:amd64-${{ github.sha }} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:arm64-${{ github.sha }}
+            -t ${{ steps.meta.outputs.tags }} \
+            -t ${{ steps.meta.outputs.tags }}-${{ github.sha }} \
+            ${{ steps.meta.outputs.tags }}-amd64-${{ github.sha }} \
+            ${{ steps.meta.outputs.tags }}-arm64-${{ github.sha }}
 
           # Add latest tag only for main branch
           if [ "${GITHUB_REF_NAME}" = "main" ]; then
             docker buildx imagetools create \
-              -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:amd64-${{ github.sha }} \
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:arm64-${{ github.sha }}
+              -t ${{ steps.meta.outputs.tags }}:latest \
+              ${{ steps.meta.outputs.tags }}-amd64-${{ github.sha }} \
+              ${{ steps.meta.outputs.tags }}-arm64-${{ github.sha }}
           fi
 
   deploy-to-production:
