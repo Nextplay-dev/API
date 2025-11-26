@@ -63,6 +63,9 @@ jobs:
   merge-images:
     needs: build-and-push-image
     runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Log in to GHCR
         uses: docker/login-action@v3
