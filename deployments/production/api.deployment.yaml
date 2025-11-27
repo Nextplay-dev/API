@@ -20,6 +20,16 @@ spec:
       labels:
         app: api
     spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - postgres
+            topologyKey: kubernetes.io/hostname
       restartPolicy: Always
       imagePullSecrets:
         - name: ghcr-auth
