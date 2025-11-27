@@ -39,12 +39,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Extract metadata (branch, sha)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
       - name: Build and push ${{ matrix.arch }} image
         uses: docker/build-push-action@v6
         with:
@@ -53,9 +47,7 @@ jobs:
           push: true
           platforms: linux/${{ matrix.arch }}
           tags: |
-            ${{ steps.meta.outputs.tags }}-${{ matrix.arch }}
-            ${{ steps.meta.outputs.tags }}-${{ matrix.arch }}-${{ github.sha }}
-          labels: ${{ steps.meta.outputs.labels }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ matrix.arch }}-${{ github.sha }}
 
   merge-images:
     needs: build-and-push-image
@@ -78,17 +70,16 @@ jobs:
       - name: Create and push multi-arch manifest
         run: |
           docker buildx imagetools create \
-            -t ${{ steps.meta.outputs.tags }} \
-            -t ${{ steps.meta.outputs.tags }}-${{ github.sha }} \
-            ${{ steps.meta.outputs.tags }}-amd64-${{ github.sha }} \
-            ${{ steps.meta.outputs.tags }}-arm64-${{ github.sha }}
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }} \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ github.sha }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-amd64-${{ github.sha }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-arm64-${{ github.sha }}
 
-          # Add latest tag only for main branch
-          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+          if [ "${{ github.ref_name }}" = "main" ]; then
             docker buildx imagetools create \
-              -t ${{ steps.meta.outputs.tags }}:latest \
-              ${{ steps.meta.outputs.tags }}-amd64-${{ github.sha }} \
-              ${{ steps.meta.outputs.tags }}-arm64-${{ github.sha }}
+              -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-amd64-${{ github.sha }} \
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-arm64-${{ github.sha }}
           fi
 
   deploy-to-production:
@@ -98,7 +89,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Deploy to Production
         run: kubectl apply -f deployments/production
