@@ -5,14 +5,24 @@ namespace App\Http\Controllers;
 use App\Http\Resources\ActivityResource;
 use App\Models\Activity;
 use Illuminate\Http\JsonResponse;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedSort;
+use App\Sorts\NearestSort;
 
 class ActivityController extends Controller
 {
     public function index(): JsonResponse {
-        $activities = Activity::all()
-            ->load('tournaments');
+        $activities = QueryBuilder::for(Activity::class)
+            ->with('tournaments')
+            ->allowedSorts([
+                AllowedSort::custom('nearest', new NearestSort),
+                'name',
+                'category',
+            ])
+            ->defaultSort('name')
+            ->paginate(20);
 
-        $activities = ActivityResource::collection($activities);
+        ActivityResource::collection($activities);
 
         return response()->json($activities);
     }

@@ -12,6 +12,8 @@ class Activity extends Model
         "address",
         "media",
         "category",
+        "latitude",
+        "longitude",
     ];
 
     public function tournaments(): BelongsToMany
