@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp:1.3-php8.3-bookworm
+FROM dunglas/frankenphp
 
 RUN apt-get update && apt-get install -y \
     libzip-dev \
