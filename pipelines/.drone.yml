@@ -51,7 +51,7 @@ steps:
   - name: build
     image: plugins/kaniko
     settings:
-      repo: ghcr.io/nextplay-dev/app
+      repo: ghcr.io/nextplay-dev/api
       tags:
         - ${DRONE_BUILD_NUMBER}-arm64
       dockerfile: ./docker/prod/Dockerfile
