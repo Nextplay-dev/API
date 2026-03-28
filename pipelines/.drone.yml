@@ -146,7 +146,7 @@ steps:
         DEPL_FILE="deployment.yaml"
         VERSION=${DRONE_BUILD_NUMBER}
         echo "Updating $DEPL_FILE with version: $VERSION"
-        yq -i '.spec.template.spec.containers[0].image |= sub(":main$", ":'"$VERSION"'")' $DEPL_FILE
+        sed -i "s|image: ghcr.io/nextplay-dev/api:.*|image: ghcr.io/nextplay-dev/api:$VERSION|g" $DEPL_FILE
         git add $DEPL_FILE
         git commit -m "chore: bump api version to $VERSION [CI SKIP]" || echo "No changes to commit"
         git push origin HEAD:main
