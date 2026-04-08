@@ -14,7 +14,10 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),
-            'permissions' => $this->whenLoaded('roles', fn () => $this->getAllPermissions()),
+            'permissions' => $this->when(
+                $this->relationLoaded('roles') || $this->relationLoaded('permissions'),
+                fn () => $this->getAllPermissions()
+            ),
             'created_at' => $this->created_at,
         ];
     }
@@ -25,8 +28,11 @@ class UserResource extends JsonResource
             ? $this->permissions->pluck('name')
             : collect();
 
-        $rolePermissions = $this->roles
-            ->flatMap(fn ($role) => $role->permissions->pluck('name'));
+        $rolePermissions = $this->relationLoaded('roles')
+            ? $this->roles
+                ->filter(fn ($role) => $role->relationLoaded('permissions'))
+                ->flatMap(fn ($role) => $role->permissions->pluck('name'))
+            : collect();
 
         return $directPermissions->merge($rolePermissions)->unique()->values()->all();
     }
