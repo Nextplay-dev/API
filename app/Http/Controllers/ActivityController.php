@@ -2,36 +2,48 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Activity\DeleteActivityAction;
+use App\Actions\Activity\ListActivitiesAction;
+use App\Actions\Activity\StoreActivityAction;
+use App\Actions\Activity\UpdateActivityAction;
+use App\Http\Requests\StoreActivityRequest;
+use App\Http\Requests\UpdateActivityRequest;
 use App\Http\Resources\ActivityResource;
 use App\Models\Activity;
 use Illuminate\Http\JsonResponse;
-use Spatie\QueryBuilder\QueryBuilder;
-use Spatie\QueryBuilder\AllowedSort;
-use App\Sorts\NearestSort;
 
 class ActivityController extends Controller
 {
-    public function index(): JsonResponse {
-        $activities = QueryBuilder::for(Activity::class)
-            ->with('tournaments')
-            ->allowedSorts([
-                AllowedSort::custom('nearest', new NearestSort),
-                'name',
-                'category',
-            ])
-            ->defaultSort('name')
-            ->paginate(20);
+    public function index(ListActivitiesAction $action): JsonResponse {
+        $activities = $action->handle();
 
-        ActivityResource::collection($activities);
-
-        return response()->json($activities);
+        return ActivityResource::collection($activities)->response();
     }
 
     public function show(Activity $activity): JsonResponse {
-        $activity->load('tournaments');
+        $activity->load(['tournaments', 'category']);
 
-        $activity = ActivityResource::make($activity);
+        return ActivityResource::make($activity)->response();
+    }
 
-        return response()->json($activity);
+    public function store(StoreActivityRequest $request, StoreActivityAction $action): JsonResponse
+    {
+        $activity = $action->handle($request);
+
+        return ActivityResource::make($activity)->response()->setStatusCode(201);
+    }
+
+    public function update(UpdateActivityRequest $request, Activity $activity, UpdateActivityAction $action): JsonResponse
+    {
+        $activity = $action->handle($request, $activity);
+
+        return ActivityResource::make($activity)->response();
+    }
+
+    public function destroy(Activity $activity, DeleteActivityAction $action): JsonResponse
+    {
+        $action->handle($activity);
+
+        return response()->json(null, 204);
     }
 }

@@ -148,3 +148,13 @@ steps:
         git add $DEPL_FILE
         git commit -m "chore: bump api version to $VERSION [CI SKIP]" || echo "No changes to commit"
         git push origin HEAD:main
+  - name: deploy
+    image: quay.io/argoproj/argocd
+    environment:
+      ARGOCD_SERVER:
+        from_secret: ARGOCD_SERVER
+      ARGOCD_AUTH_TOKEN:
+        from_secret: ARGOCD_TOKEN
+    commands:
+      - argocd app sync my-app --grpc-web --force
+      - argocd app wait my-app --health --grpc-web

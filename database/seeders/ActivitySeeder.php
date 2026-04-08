@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Activity;
+use App\Models\ActivityCategory;
 use App\Models\Tournament;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -55,19 +56,22 @@ class ActivitySeeder extends Seeder
             ['name' => 'Foot Indoor Marseille', 'address' => '8 Traverse de la Montre, 13011 Marseille', 'media' => 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=600', 'category' => 'Category.Football', 'game' => 'Football', 'latitude' => 43.2922, 'longitude' => 5.4633],
 
             // Wellness & Golf
-            ['name' => 'Maison du Yoga', 'address' => '12 Rue de la Bourse, 59800 Lille', 'media' => 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600', 'category' => 'Category.Wellness', 'game' => 'Yoga', 'latitude' => 50.6372, 'longitude' => 3.0644],
-            ['name' => 'Golf de Brigode', 'address' => '36 Avenue du Golf, 59650 Villeneuve-d\'Ascq', 'media' => 'https://images.unsplash.com/photo-1587174403403-b677df2772f2?w=600', 'category' => 'Category.Team', 'game' => 'Golf', 'latitude' => 50.6255, 'longitude' => 3.1588],
+            ['name' => 'Maison du Yoga', 'address' => '12 Rue de la Bourse, 59800 Lille', 'media' => 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600', 'category' => 'Category.Yoga', 'game' => 'Yoga', 'latitude' => 50.6372, 'longitude' => 3.0644],
+            ['name' => 'Golf de Brigode', 'address' => '36 Avenue du Golf, 59650 Villeneuve-d\'Ascq', 'media' => 'https://images.unsplash.com/photo-1587174403403-b677df2772f2?w=600', 'category' => 'Category.Golf', 'game' => 'Golf', 'latitude' => 50.6255, 'longitude' => 3.1588],
             ['name' => 'Spa de la Source', 'address' => '78 Route de Valenciennes, 59500 Douai', 'media' => 'https://images.unsplash.com/photo-1540555708071-88b0d3c6156d?w=600', 'category' => 'Category.Wellness', 'game' => 'Spa', 'latitude' => 50.3688, 'longitude' => 3.0805],
-            ['name' => 'Laser Game Evolution', 'address' => '4 Rue de l\'Artisanat, 59800 Lille', 'media' => 'https://images.unsplash.com/photo-1598550874175-4d0ef4abc61d?w=600', 'category' => 'Category.LaserGame', 'game' => 'Laser Game', 'latitude' => 50.6277, 'longitude' => 3.0441],
-            ['name' => 'Aqua Fitness Centre', 'address' => 'Avenue de la République, 69002 Lyon', 'media' => 'https://images.unsplash.com/photo-1518611509439-f93060998951?w=600', 'category' => 'Category.Wellness', 'game' => 'Fitness', 'latitude' => 45.7661, 'longitude' => 4.8351],
+            ['name' => 'Laser Game Evolution', 'address' => '4 Rue de l\'Artisanat, 59800 Lille', 'media' => 'https://images.unsplash.com/photo-1598550874175-4d0ef4abc61d?w=600', 'category' => 'Category.Laser Game', 'game' => 'Laser Game', 'latitude' => 50.6277, 'longitude' => 3.0441],
+            ['name' => 'Aqua Fitness Centre', 'address' => 'Avenue de la République, 69002 Lyon', 'media' => 'https://images.unsplash.com/photo-1518611509439-f93060998951?w=600', 'category' => 'Category.Fitness', 'game' => 'Fitness', 'latitude' => 45.7661, 'longitude' => 4.8351],
         ];
 
         foreach ($data as $item) {
+            $categoryName = str_replace('Category.', '', $item['category']);
+            $category = ActivityCategory::where('name', $categoryName)->first();
+
             $activity = Activity::create([
                 'name' => $item['name'],
                 'address' => $item['address'],
                 'media' => $item['media'],
-                'category' => $item['category'],
+                'activity_category_id' => $category?->id,
                 'latitude' => $item['latitude'],
                 'longitude' => $item['longitude']
             ]);

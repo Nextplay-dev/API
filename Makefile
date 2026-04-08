@@ -23,6 +23,12 @@ paratest:
 migrate:
 	docker exec -it $(CONTAINER_NAME) php artisan migrate
 
+seed:
+	docker exec -it $(CONTAINER_NAME) php artisan db:seed
+
+fresh:
+	docker exec -it $(CONTAINER_NAME) php artisan migrate:fresh --seed
+
 lint: ide-helper
 	docker exec -it $(CONTAINER_NAME) ./vendor/bin/pint --repair
 
