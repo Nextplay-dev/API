@@ -156,5 +156,5 @@ steps:
       ARGOCD_AUTH_TOKEN:
         from_secret: ARGOCD_TOKEN
     commands:
-      - argocd app sync my-app --grpc-web --force
-      - argocd app wait my-app --health --grpc-web
+      - argocd app sync nextplay-api --grpc-web --force
+      - argocd app wait nextplay-api --health --grpc-web
