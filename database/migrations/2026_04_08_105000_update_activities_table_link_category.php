@@ -14,19 +14,6 @@ return new class extends Migration
             $table->foreignIdFor(ActivityCategory::class)->nullable()->after('media')->constrained()->nullOnDelete();
         });
 
-        // Migrate data from string column to foreign key
-        $activities = Activity::all();
-
-        foreach ($activities as $activity) {
-            $categoryName = str_replace('Category.', '', $activity->category);
-            
-            $category = ActivityCategory::where('name', $categoryName)->first();
-
-            if ($category) {
-                $activity->update(['activity_category_id' => $category->id]);
-            }
-        }
-
         Schema::table('activities', function (Blueprint $table) {
             $table->dropColumn('category');
         });
@@ -37,17 +24,6 @@ return new class extends Migration
         Schema::table('activities', function (Blueprint $table) {
             $table->string('category')->after('media');
         });
-
-        $activities = Activity::all();
-
-        foreach ($activities as $activity) {
-            if ($activity->activity_category_id) {
-                $category = ActivityCategory::find($activity->activity_category_id);
-                if ($category) {
-                    $activity->update(['category' => 'Category.' . $category->name]);
-                }
-            }
-        }
 
         Schema::table('activities', function (Blueprint $table) {
             $table->dropConstrainedForeignIdFor(ActivityCategory::class);
