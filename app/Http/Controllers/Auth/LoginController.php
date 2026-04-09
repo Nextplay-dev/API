@@ -13,11 +13,15 @@ class LoginController extends Controller
     {
         $request->authenticate();
 
-        $token = $request->user()->createToken('auth');
+        $user = $request->user();
+
+        $token = $user->createToken('auth');
+
+        $user->load(['roles.permissions', 'permissions']);
 
         return response()->json([
             'token' => $token->plainTextToken,
-            'user' => UserResource::make($request->user()),
+            'user' => UserResource::make($user),
         ]);
     }
 }

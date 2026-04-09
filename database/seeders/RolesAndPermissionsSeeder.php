@@ -9,14 +9,19 @@ use Illuminate\Database\Seeder;
 class RolesAndPermissionsSeeder extends Seeder
 {
     private const PERMISSIONS = [
+        'back-office.access',
+
+        'activity.view',
         'activity.create',
         'activity.update',
         'activity.delete',
 
+        'activity-category.view',
         'activity-category.create',
         'activity-category.update',
         'activity-category.delete',
 
+        'tournament.view',
         'tournament.create',
         'tournament.update',
         'tournament.delete',
@@ -25,24 +30,29 @@ class RolesAndPermissionsSeeder extends Seeder
         'tournament.cancel-booking',
 
         'user.view',
+        'user.create',
         'user.update',
         'user.delete',
     ];
 
     private const ROLE_PERMISSIONS = [
         'customer' => [
+            'activity.view',
+            'activity-category.view',
             'tournament.book',
             'tournament.cancel-booking',
         ],
         'manager' => [
+            'back-office.access',
+
+            'tournament.view',
             'tournament.book',
             'tournament.cancel-booking',
 
-            'activity.create',
+            'activity.view',
             'activity.update',
 
-            'activity-category.create',
-            'activity-category.update',
+            'activity-category.view',
 
             'tournament.create',
             'tournament.update',

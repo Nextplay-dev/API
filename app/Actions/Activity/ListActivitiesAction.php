@@ -17,6 +17,7 @@ class ListActivitiesAction
             ->withCount('tournaments')
             ->allowedFilters([
                 AllowedFilter::exact('category_id', 'activity_category_id'),
+                AllowedFilter::partial('name'),
             ])
             ->allowedSorts([
                 AllowedSort::custom('nearest', new NearestSort),

@@ -6,9 +6,11 @@ use Illuminate\Support\Facades\Route;
 Route::controller(ActivityCategoryController::class)
 ->group(function () {
     Route::get('/', 'index')
-        ->name('activity-category.index');
+        ->name('activity-category.index')
+        ->middleware('permission:activity-category.view');
     Route::get('/{activityCategory}', 'show')
-        ->name('activity-category.show');
+        ->name('activity-category.show')
+        ->middleware('permission:activity-category.view');
     
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/', 'store')
