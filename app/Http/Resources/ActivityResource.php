@@ -14,9 +14,10 @@ class ActivityResource extends JsonResource
             "name" => $this->name,
             "address" => $this->address,
             "media" => $this->media,
-            "tournaments_count" => $this->tournaments()->count(),
+            "tournaments_count" => $this->whenCounted('tournaments'),
             "tournaments" => TournamentResource::collection($this->whenLoaded("tournaments")),
-            "category" => $this->category,
+            "category_id" => $this->activity_category_id,
+            "category" => ActivityCategoryResource::make($this->whenLoaded("category")),
         ];
     }
 }

@@ -9,4 +9,16 @@ Route::controller(ActivityController::class)
         ->name('activity.index');
     Route::get('/{activity}', 'show')
         ->name('activity.show');
+
+    Route::middleware(['auth:sanctum'])->group(function () {
+        Route::post('/', 'store')
+            ->name('activity.store')
+            ->middleware('permission:activity.create');
+        Route::put('/{activity}', 'update')
+            ->name('activity.update')
+            ->middleware('permission:activity.update');
+        Route::delete('/{activity}', 'destroy')
+            ->name('activity.destroy')
+            ->middleware('permission:activity.delete');
+    });
 });
