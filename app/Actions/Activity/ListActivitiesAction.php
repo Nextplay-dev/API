@@ -24,6 +24,7 @@ class ListActivitiesAction
                 'name',
             ])
             ->defaultSort('name')
+            ->with(['category', 'managers'])
             ->paginate(request()->integer('per_page', 20))
             ->appends(request()->query());
     }

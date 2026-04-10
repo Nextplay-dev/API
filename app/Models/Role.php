@@ -9,6 +9,11 @@ class Role extends Model
 {
     protected $fillable = [
         'name',
+        'is_locked',
+    ];
+
+    protected $casts = [
+        'is_locked' => 'boolean',
     ];
 
     public function permissions(): BelongsToMany

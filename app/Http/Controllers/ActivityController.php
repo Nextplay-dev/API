@@ -21,7 +21,8 @@ class ActivityController extends Controller
     }
 
     public function show(Activity $activity): JsonResponse {
-        $activity->load(['tournaments', 'category']);
+        $this->authorize('view', $activity);
+        $activity->load(['tournaments', 'category', 'managers']);
 
         return ActivityResource::make($activity)->response();
     }
@@ -35,6 +36,7 @@ class ActivityController extends Controller
 
     public function update(UpdateActivityRequest $request, Activity $activity, UpdateActivityAction $action): JsonResponse
     {
+        $this->authorize('update', $activity);
         $activity = $action->handle($request, $activity);
 
         return ActivityResource::make($activity)->response();
@@ -42,6 +44,7 @@ class ActivityController extends Controller
 
     public function destroy(Activity $activity, DeleteActivityAction $action): JsonResponse
     {
+        $this->authorize('delete', $activity);
         $action->handle($activity);
 
         return response()->json(null, 204);

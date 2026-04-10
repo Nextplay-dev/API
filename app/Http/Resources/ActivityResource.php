@@ -18,6 +18,10 @@ class ActivityResource extends JsonResource
             "tournaments" => TournamentResource::collection($this->whenLoaded("tournaments")),
             "category_id" => $this->activity_category_id,
             "category" => ActivityCategoryResource::make($this->whenLoaded("category")),
+            "managers" => $this->when(
+                $request->user()?->hasPermissionTo('activity.managers.view'),
+                fn () => UserResource::collection($this->whenLoaded("managers"))
+            ),
             "latitude" => $this->latitude,
             "longitude" => $this->longitude,
         ];

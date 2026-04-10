@@ -28,4 +28,9 @@ class Activity extends Model
             ->withPivot("host")
             ->withTimestamps();
     }
+
+    public function managers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class);
+    }
 }

@@ -9,6 +9,10 @@ Route::prefix('/v1')->group(function () {
         ->middleware('auth:sanctum')
         ->group(base_path('routes/api/activity.php'));
 
+    Route::prefix('my-activities')
+        ->middleware('auth:sanctum')
+        ->group(base_path('routes/api/my-activity.php'));
+
     Route::prefix('tournaments')
         ->middleware('auth:sanctum')
         ->group(base_path('routes/api/tournament.php'));
@@ -24,5 +28,9 @@ Route::prefix('/v1')->group(function () {
     Route::prefix('roles')
         ->middleware('auth:sanctum')
         ->group(base_path('routes/api/role.php'));
+
+    Route::prefix('permissions')
+        ->middleware('auth:sanctum')
+        ->group(base_path('routes/api/permission.php'));
 
 });

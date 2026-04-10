@@ -11,6 +11,10 @@ class UpdateActivityAction
     {
         $activity->update($request->validated());
 
+        if ($request->has('manager_ids') && auth()->user()?->hasPermissionTo('activity.managers.update')) {
+            $activity->managers()->sync($request->manager_ids);
+        }
+
         return $activity->refresh();
     }
 }

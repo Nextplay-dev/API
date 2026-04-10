@@ -20,6 +20,8 @@ class StoreActivityRequest extends FormRequest
             'activity_category_id' => ['required', 'exists:activity_categories,id'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'manager_ids' => ['nullable', 'array'],
+            'manager_ids.*' => ['exists:users,id'],
         ];
     }
 }

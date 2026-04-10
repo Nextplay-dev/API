@@ -10,10 +10,17 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     private const PERMISSIONS = [
         'back-office.access',
+        'back-office.administration.dashboard',
+        'back-office.administration.activities',
+        'back-office.administration.categories',
+        'back-office.administration.users',
+        'back-office.administration.roles',
 
         'activity.view',
         'activity.create',
         'activity.update',
+        'activity.managers.view',
+        'activity.managers.update',
         'activity.delete',
 
         'activity-category.view',
@@ -33,6 +40,19 @@ class RolesAndPermissionsSeeder extends Seeder
         'user.create',
         'user.update',
         'user.delete',
+
+        'role.view',
+        'role.create',
+        'role.update',
+        'role.delete',
+
+        'permission.view',
+
+        'me.view',
+        'me.update',
+
+        'my-activity.view',
+        'my-activity.update',
     ];
 
     private const ROLE_PERMISSIONS = [
@@ -41,6 +61,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'activity-category.view',
             'tournament.book',
             'tournament.cancel-booking',
+            'me.view',
         ],
         'manager' => [
             'back-office.access',
@@ -50,7 +71,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'tournament.cancel-booking',
 
             'activity.view',
-            'activity.update',
+            'my-activity.view',
+            'my-activity.update',
 
             'activity-category.view',
 
@@ -67,7 +89,14 @@ class RolesAndPermissionsSeeder extends Seeder
         );
 
         foreach (self::ROLE_PERMISSIONS as $roleName => $rolePermissions) {
-            $role = Role::firstOrCreate(['name' => $roleName]);
+            $role = Role::firstOrCreate(
+                ['name' => $roleName],
+                ['is_locked' => true]
+            );
+
+            if (!$role->is_locked) {
+                $role->update(['is_locked' => true]);
+            }
 
             if ($rolePermissions === '*') {
                 $role->permissions()->sync($permissions->pluck('id'));

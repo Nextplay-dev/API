@@ -28,5 +28,6 @@ Route::controller(MeController::class)
 ->prefix('me')
 ->group(function () {
     Route::get('/', 'index')
+    ->middleware('permission:me.view')
     ->name('me.index');
 });

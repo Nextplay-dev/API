@@ -33,4 +33,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function managedActivities(): BelongsToMany
+    {
+        return $this->belongsToMany(Activity::class);
+    }
 }
