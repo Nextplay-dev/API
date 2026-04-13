@@ -71,4 +71,21 @@ trait HasRolesAndPermissions
             ->whereHas('permissions', fn ($query) => $query->where('name', $permissionName))
             ->exists();
     }
+
+    public function getAllPermissionIds(): array
+    {
+        $rolePermissions = $this->roles()->with('permissions')->get()->flatMap->permissions->pluck('id');
+        $directPermissions = $this->permissions()->pluck('id');
+
+        return $rolePermissions->merge($directPermissions)->unique()->toArray();
+    }
+
+    public function getHighestRoleWeight(): int
+    {
+        try {
+            return (int) $this->roles()->max('weight');
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
 }

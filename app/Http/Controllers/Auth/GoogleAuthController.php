@@ -12,7 +12,17 @@ class GoogleAuthController extends Controller
     public function redirect(Request $request)
     {
         $redirectTo = $request->get('redirect_to', 'exp://');
-        $state = base64_encode(json_encode(['redirect_to' => $redirectTo]));
+        if (!str_starts_with($redirectTo, 'exp://') && !in_array($redirectTo, config('auth.oauth.redirect_urls')))
+            return abort(400, 'Invalid redirect url');
+
+        $originReferrer = $request->header('X-Origin-Referrer') 
+            ?? $request->input('origin_referrer') 
+            ?? $request->header('referer');
+
+        $state = base64_encode(json_encode([
+            'redirect_to' => $redirectTo,
+            'origin_referrer' => $originReferrer,
+        ]));
 
         return Socialite::driver('google')
             ->redirectUrl(route('google.callback'))
@@ -26,20 +36,27 @@ class GoogleAuthController extends Controller
         try {
             $state = json_decode(base64_decode($request->get('state', '')), true);
             $redirectTo = $state['redirect_to'] ?? 'exp://';
+            $originReferrer = $state['origin_referrer'] ?? null;
         } catch (\Exception $e) {
             $redirectTo = 'exp://';
+            $originReferrer = null;
         }
 
         try {
-            $googleUser = Socialite::driver('google')
+            $driver = Socialite::driver('google')
                 ->redirectUrl(route('google.callback'))
-                ->stateless()
-                ->user();
+                ->stateless();
+
+            $googleUser = $driver->user();
         } catch (\Exception $e) {
             return redirect()->away($redirectTo . (str_contains($redirectTo, '?') ? '&' : '?') . 'error=google_auth_failed');
         }
 
-        $token = $action->handle($googleUser);
+        try {
+            $token = $action->handle($googleUser, $originReferrer);
+        } catch (\Exception $e) {
+            return redirect()->away($redirectTo . (str_contains($redirectTo, '?') ? '&' : '?') . 'error=auth_internal_error');
+        }
 
         return redirect()->away($redirectTo . (str_contains($redirectTo, '?') ? '&' : '?') . 'token=' . $token);
     }

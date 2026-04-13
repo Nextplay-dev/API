@@ -10,7 +10,8 @@ readonly class UserDTO
         public string $name,
         public string $email,
         public ?string $password = null,
-        public array $roles = []
+        public ?array $roles = null,
+        public ?string $originReferrer = null,
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -19,7 +20,10 @@ readonly class UserDTO
             name: $request->string('name'),
             email: $request->string('email'),
             password: $request->string('password'),
-            roles: $request->input('roles', [])
+            roles: $request->has('roles') ? $request->input('roles', []) : null,
+            originReferrer: $request->header('X-Origin-Referrer') 
+                ?? $request->input('origin_referrer') 
+                ?? $request->header('referer')
         );
     }
 

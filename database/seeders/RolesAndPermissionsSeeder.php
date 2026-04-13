@@ -57,29 +57,34 @@ class RolesAndPermissionsSeeder extends Seeder
 
     private const ROLE_PERMISSIONS = [
         'customer' => [
-            'activity.view',
-            'activity-category.view',
-            'tournament.book',
-            'tournament.cancel-booking',
-            'me.view',
+            'permissions' => [
+                'activity.view',
+                'activity-category.view',
+                'tournament.book',
+                'tournament.cancel-booking',
+                'me.view',
+            ],
+            'weight' => 10,
         ],
         'manager' => [
-            'back-office.access',
-
-            'tournament.view',
-            'tournament.book',
-            'tournament.cancel-booking',
-
-            'activity.view',
-            'my-activity.view',
-            'my-activity.update',
-
-            'activity-category.view',
-
-            'tournament.create',
-            'tournament.update',
+            'permissions' => [
+                'back-office.access',
+                'tournament.view',
+                'tournament.book',
+                'tournament.cancel-booking',
+                'activity.view',
+                'my-activity.view',
+                'my-activity.update',
+                'activity-category.view',
+                'tournament.create',
+                'tournament.update',
+            ],
+            'weight' => 50,
         ],
-        'admin' => '*',
+        'admin' => [
+            'permissions' => '*',
+            'weight' => 100,
+        ],
     ];
 
     public function run(): void
@@ -88,23 +93,26 @@ class RolesAndPermissionsSeeder extends Seeder
             fn (string $name) => Permission::firstOrCreate(['name' => $name])
         );
 
-        foreach (self::ROLE_PERMISSIONS as $roleName => $rolePermissions) {
+        foreach (self::ROLE_PERMISSIONS as $roleName => $config) {
             $role = Role::firstOrCreate(
                 ['name' => $roleName],
-                ['is_locked' => true]
+                [
+                    'is_locked' => true,
+                    'weight' => $config['weight']
+                ]
             );
 
-            if (!$role->is_locked) {
-                $role->update(['is_locked' => true]);
+            if ($role->weight !== $config['weight']) {
+                $role->update(['weight' => $config['weight']]);
             }
 
-            if ($rolePermissions === '*') {
+            if ($config['permissions'] === '*') {
                 $role->permissions()->sync($permissions->pluck('id'));
                 continue;
             }
 
             $permissionIds = $permissions
-                ->whereIn('name', $rolePermissions)
+                ->whereIn('name', $config['permissions'])
                 ->pluck('id');
 
             $role->permissions()->sync($permissionIds);

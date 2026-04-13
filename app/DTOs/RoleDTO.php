@@ -8,14 +8,16 @@ readonly class RoleDTO
 {
     public function __construct(
         public string $name,
-        public array $permissions = []
+        public ?array $permissions = null,
+        public int $weight = 0
     ) {}
  
     public static function fromRequest(Request $request): self
     {
         return new self(
             name: $request->string('name'),
-            permissions: $request->input('permissions', [])
+            permissions: $request->has('permissions') ? $request->input('permissions', []) : null,
+            weight: $request->integer('weight', 0)
         );
     }
  
@@ -23,6 +25,7 @@ readonly class RoleDTO
     {
         return [
             'name' => $this->name,
+            'weight' => $this->weight,
         ];
     }
 }

@@ -18,6 +18,7 @@ class UserResource extends JsonResource
                 $this->relationLoaded('roles') || $this->relationLoaded('permissions'),
                 fn () => $this->getAllPermissions()
             ),
+            'highest_role_weight' => $this->getHighestRoleWeight(),
             'created_at' => $this->created_at,
         ];
     }

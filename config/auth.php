@@ -112,4 +112,8 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'oauth' => [
+        'redirect_urls' => explode(',', env('AUTH_OAUTH_REDIRECT_URLS','')),
+    ]
+
 ];

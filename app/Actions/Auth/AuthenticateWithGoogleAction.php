@@ -14,7 +14,7 @@ class AuthenticateWithGoogleAction
         protected RegisterAction $registerAction
     ) {}
 
-    public function handle(SocialiteUser $googleUser): string
+    public function handle(SocialiteUser $googleUser, ?string $originReferrer = null): string
     {
         $user = User::where('email', $googleUser->getEmail())->first();
 
@@ -22,7 +22,9 @@ class AuthenticateWithGoogleAction
             $userDto = new UserDTO(
                 name: $googleUser->getName() ?? $googleUser->getNickname() ?? 'Player',
                 email: $googleUser->getEmail(),
-                password: bcrypt(Str::random(16))
+                password: null,
+                roles: ['customer'],
+                originReferrer: $originReferrer
             );
 
             $user = $this->registerAction->handle($userDto);
