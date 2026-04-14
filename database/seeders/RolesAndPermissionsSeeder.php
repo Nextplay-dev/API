@@ -11,22 +11,22 @@ class RolesAndPermissionsSeeder extends Seeder
     private const PERMISSIONS = [
         'back-office.access',
         'back-office.administration.dashboard',
-        'back-office.administration.activities',
+        'back-office.administration.venues',
         'back-office.administration.categories',
         'back-office.administration.users',
         'back-office.administration.roles',
 
-        'activity.view',
-        'activity.create',
-        'activity.update',
-        'activity.managers.view',
-        'activity.managers.update',
-        'activity.delete',
+        'venue.view',
+        'venue.create',
+        'venue.update',
+        'venue.managers.view',
+        'venue.managers.update',
+        'venue.delete',
 
-        'activity-category.view',
-        'activity-category.create',
-        'activity-category.update',
-        'activity-category.delete',
+        'category.view',
+        'category.create',
+        'category.update',
+        'category.delete',
 
         'tournament.view',
         'tournament.create',
@@ -51,15 +51,15 @@ class RolesAndPermissionsSeeder extends Seeder
         'me.view',
         'me.update',
 
-        'my-activity.view',
-        'my-activity.update',
+        'my-venue.view',
+        'my-venue.update',
     ];
 
     private const ROLE_PERMISSIONS = [
         'customer' => [
             'permissions' => [
-                'activity.view',
-                'activity-category.view',
+                'venue.view',
+                'category.view',
                 'tournament.book',
                 'tournament.cancel-booking',
                 'me.view',
@@ -73,10 +73,10 @@ class RolesAndPermissionsSeeder extends Seeder
                 'tournament.view',
                 'tournament.book',
                 'tournament.cancel-booking',
-                'activity.view',
-                'my-activity.view',
-                'my-activity.update',
-                'activity-category.view',
+                'venue.view',
+                'my-venue.view',
+                'my-venue.update',
+                'category.view',
                 'tournament.create',
                 'tournament.update',
                 'me.view',

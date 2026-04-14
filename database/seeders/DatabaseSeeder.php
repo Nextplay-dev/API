@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Activity;
-use App\Models\ActivityCategory;
+use App\Models\Venue;
+use App\Models\Category;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,14 +12,14 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RolesAndPermissionsSeeder::class);
         
-        if (ActivityCategory::count() === 0)
+        if (Category::count() === 0)
             $this->call([
-                ActivityCategorySeeder::class,
+                CategorySeeder::class,
             ]);
 
-        if (Activity::count() === 0)
+        if (Venue::count() === 0)
             $this->call([
-                ActivitySeeder::class,
+                VenueSeeder::class,
             ]);
     }
 }

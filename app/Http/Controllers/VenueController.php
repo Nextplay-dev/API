@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Actions\Venue\DeleteVenueAction;
+use App\Actions\Venue\ListVenuesAction;
+use App\Actions\Venue\StoreVenueAction;
+use App\Actions\Venue\UpdateVenueAction;
+use App\Http\Requests\StoreVenueRequest;
+use App\Http\Requests\UpdateVenueRequest;
+use App\Http\Resources\VenueResource;
+use App\Models\Venue;
+use Illuminate\Http\JsonResponse;
+
+class VenueController extends Controller
+{
+    public function index(ListVenuesAction $action): JsonResponse {
+        $activities = $action->handle();
+
+        return VenueResource::collection($activities)->response();
+    }
+
+    public function show(Venue $venue): JsonResponse {
+        $this->authorize('view', $venue);
+        $venue->load(['tournaments', 'category', 'managers']);
+
+        return VenueResource::make($venue)->response();
+    }
+
+    public function store(StoreVenueRequest $request, StoreVenueAction $action): JsonResponse
+    {
+        $venue = $action->handle($request);
+
+        return VenueResource::make($venue)->response()->setStatusCode(201);
+    }
+
+    public function update(UpdateVenueRequest $request, Venue $venue, UpdateVenueAction $action): JsonResponse
+    {
+        $this->authorize('update', $venue);
+        $venue = $action->handle($request, $venue);
+
+        return VenueResource::make($venue)->response();
+    }
+
+    public function destroy(Venue $venue, DeleteVenueAction $action): JsonResponse
+    {
+        $this->authorize('delete', $venue);
+        $action->handle($venue);
+
+        return response()->json(null, 204);
+    }
+}

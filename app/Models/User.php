@@ -34,8 +34,8 @@ class User extends Authenticatable
         ];
     }
 
-    public function managedActivities(): BelongsToMany
+    public function managedVenues(): BelongsToMany
     {
-        return $this->belongsToMany(Activity::class);
+        return $this->belongsToMany(Venue::class);
     }
 }

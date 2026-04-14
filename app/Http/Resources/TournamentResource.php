@@ -18,7 +18,7 @@ class TournamentResource extends JsonResource
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'bookings_count' => $this->bookings()->count(),
-            'activities' => ActivityResource::collection($this->whenLoaded('activities')),
+            'venues' => VenueResource::collection($this->whenLoaded('venues')),
             'bookings' => BookingResource::collection($this->whenLoaded('bookings')),
         ];
     }

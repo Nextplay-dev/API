@@ -1,25 +1,27 @@
 <?php
 
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\SlotController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('/v1')->group(function () {
 
     Route::prefix('auth')->group(base_path('routes/api/auth.php'));
-    Route::prefix('activities')
+    Route::prefix('venues')
         ->middleware('auth:sanctum')
-        ->group(base_path('routes/api/activity.php'));
+        ->group(base_path('routes/api/venue.php'));
 
-    Route::prefix('my-activities')
+    Route::prefix('my-venues')
         ->middleware('auth:sanctum')
-        ->group(base_path('routes/api/my-activity.php'));
+        ->group(base_path('routes/api/my-venue.php'));
 
     Route::prefix('tournaments')
         ->middleware('auth:sanctum')
         ->group(base_path('routes/api/tournament.php'));
 
-    Route::prefix('activity-categories')
+    Route::prefix('categories')
         ->middleware('auth:sanctum')
-        ->group(base_path('routes/api/activity-category.php'));
+        ->group(base_path('routes/api/category.php'));
 
     Route::prefix('users')
         ->middleware('auth:sanctum')
@@ -32,5 +34,11 @@ Route::prefix('/v1')->group(function () {
     Route::prefix('permissions')
         ->middleware('auth:sanctum')
         ->group(base_path('routes/api/permission.php'));
+
+    Route::post('bookings', [BookingController::class, 'store'])
+        ->middleware('auth:sanctum');
+
+    Route::get('slots', [SlotController::class, 'index'])
+        ->middleware('auth:sanctum');
 
 });
