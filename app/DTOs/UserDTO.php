@@ -2,7 +2,7 @@
 
 namespace App\DTOs;
 
-use Illuminate\Http\Request;
+use Illuminate\Foundation\Http\FormRequest;
 
 readonly class UserDTO
 {
@@ -14,15 +14,15 @@ readonly class UserDTO
         public ?string $originReferrer = null,
     ) {}
 
-    public static function fromRequest(Request $request): self
+    public static function fromRequest(FormRequest $request): self
     {
         return new self(
-            name: $request->string('name'),
-            email: $request->string('email'),
-            password: $request->string('password'),
-            roles: $request->has('roles') ? $request->input('roles', []) : null,
+            name: $request->validated('name'),
+            email: $request->validated('email'),
+            password: $request->validated('password'),
+            roles: $request->has('roles') ? $request->validated('roles', []) : null,
             originReferrer: $request->header('X-Origin-Referrer') 
-                ?? $request->input('origin_referrer') 
+                ?? $request->validated('origin_referrer') 
                 ?? $request->header('referer')
         );
     }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -42,8 +43,20 @@ class Booking extends Model
         return $this->belongsTo(Activity::class);
     }
 
-    public function slot(): BelongsTo
+    public function scopeConfirmed($query)
     {
-        return $this->belongsTo(Slot::class);
+        return $query->where('status', 'confirmed');
+    }
+
+    public function scopeOverlapping($query, $start, $end)
+    {
+        return $query->where(function ($q) use ($start, $end) {
+            $q->where('start_at', '<', $end)
+              ->where('end_at', '>', $start);
+        });
+    }
+    public function scopeUpcoming($query)
+    {
+        return $query->where('end_at', '>=', Carbon::now('UTC'));
     }
 }

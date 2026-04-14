@@ -9,7 +9,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('/v1')->group(function () {
 
-    Route::prefix('auth')->group(base_path('routes/api/auth.php'));
+    Route::prefix('auth')
+        ->group(base_path('routes/api/auth.php'));
+
+    Route::prefix('me')
+        ->middleware('auth:sanctum')
+        ->group(base_path('routes/api/me.php'));
+
     Route::prefix('venues')
         ->middleware('auth:sanctum')
         ->group(base_path('routes/api/venue.php'));

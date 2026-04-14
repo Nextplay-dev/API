@@ -2,6 +2,8 @@
 
 namespace App\DTOs;
 
+use Illuminate\Foundation\Http\FormRequest;
+
 class CreateBookingDTO
 {
     public function __construct(
@@ -10,18 +12,16 @@ class CreateBookingDTO
         public string $start_at,
         public string $end_at,
         public int $units = 1,
-        public ?int $slot_id = null,
     ) {}
 
-    public static function fromRequest($request): self
+    public static function fromRequest(FormRequest $request): self
     {
         return new self(
-            resource_id: $request->integer('resource_id'),
-            activity_id: $request->integer('activity_id'),
-            start_at: $request->string('start_at'),
-            end_at: $request->string('end_at'),
-            units: $request->integer('units', 1),
-            slot_id: $request->integer('slot_id'),
+            resource_id: $request->validated('resource_id'),
+            activity_id: $request->validated('activity_id'),
+            start_at: $request->validated('start_at'),
+            end_at: $request->validated('end_at'),
+            units: $request->validated('units', 1),
         );
     }
 }

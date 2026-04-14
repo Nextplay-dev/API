@@ -18,6 +18,11 @@ class Venue extends Model
         "longitude",
     ];
 
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
+
     public function resources(): HasMany
     {
         return $this->hasMany(Resource::class);

@@ -23,6 +23,7 @@ class VenueResource extends JsonResource
                 fn () => UserResource::collection($this->whenLoaded("managers"))
             ),
             "resources" => ResourceResource::collection($this->whenLoaded("resources")),
+            "activities" => ActivityResource::collection($this->whenLoaded("activities")),
             "latitude" => $this->latitude,
             "longitude" => $this->longitude,
         ];

@@ -15,7 +15,7 @@ class BookingController extends Controller
         $dto = CreateBookingDTO::fromRequest($request);
         $booking = $action->handle($dto);
 
-        return BookingResource::make($booking->load(['resource', 'activity', 'slot']))
+        return BookingResource::make($booking->load(['resource', 'activity']))
             ->response()
             ->setStatusCode(201);
     }

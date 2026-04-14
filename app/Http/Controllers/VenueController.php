@@ -23,7 +23,7 @@ class VenueController extends Controller
 
     public function show(Venue $venue): JsonResponse {
         Gate::authorize('view', $venue);
-        $venue->load(['tournaments', 'category', 'managers']);
+        $venue->load(['tournaments', 'category', 'managers', 'resources', 'activities']);
 
         return VenueResource::make($venue)->response();
     }
