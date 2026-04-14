@@ -11,9 +11,9 @@ use Illuminate\Http\JsonResponse;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
-class MyVenueController extends Controller
+class ListMyVenueController extends Controller
 {
-    public function index(): JsonResponse
+    public function __invoke(): JsonResponse
     {
         $activities = QueryBuilder::for(auth()->user()->managedVenues())
             ->withCount('tournaments')
@@ -29,23 +29,5 @@ class MyVenueController extends Controller
             ->appends(request()->query());
 
         return VenueResource::collection($activities)->response();
-    }
-
-    public function show(Venue $venue): JsonResponse
-    {
-        abort_unless($venue->managers()->where('users.id', auth()->id())->exists(), 403);
-
-        $venue->load(['tournaments', 'category', 'managers']);
-
-        return VenueResource::make($venue)->response();
-    }
-
-    public function update(UpdateVenueRequest $request, Venue $venue, UpdateVenueAction $action): JsonResponse
-    {
-        abort_unless($venue->managers()->where('users.id', auth()->id())->exists(), 403);
-
-        $venue = $action->handle($request, $venue);
-
-        return VenueResource::make($venue)->response();
     }
 }

@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Venue;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class VenuePolicy
 {
@@ -37,11 +36,11 @@ class VenuePolicy
      */
     public function update(User $user, Venue $venue): bool
     {
-        if ($user->hasRole('admin')) {
+        if ($user->hasPermissionTo('venue.update')) {
             return true;
         }
 
-        if ($user->hasPermissionTo('venue.update')) {
+        if ($user->hasPermissionTo('my-venue.update')) {
             return $venue->managers()->where('users.id', $user->id)->exists();
         }
 
