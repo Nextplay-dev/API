@@ -33,6 +33,11 @@ class RolesAndPermissionsSeeder extends Seeder
         'category.update',
         'category.delete',
 
+        'activity.view',
+        'activity.create',
+        'activity.update',
+        'activity.delete',
+
         'tournament.view',
         'tournament.create',
         'tournament.update',
@@ -85,6 +90,10 @@ class RolesAndPermissionsSeeder extends Seeder
                 'my-venue.view',
                 'my-venue.update',
                 'category.view',
+                'activity.view',
+                'activity.create',
+                'activity.update',
+                'activity.delete',
                 'tournament.create',
                 'tournament.update',
                 'me.view',

@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ListActivityResourceAvailableSlotController;
 use App\Http\Controllers\ResourceController;
+use App\Http\Controllers\VenueActivityController;
 use App\Http\Controllers\VenueController;
 use App\Models\Activity;
 use App\Models\Resource;
@@ -21,6 +22,9 @@ Route::controller(VenueController::class)
         Route::get('/', 'show')
             ->name('venue.show')
             ->middleware('permission:venue.view');
+
+        Route::apiResource('activities', VenueActivityController::class)
+            ->middleware('auth:sanctum');
 
         Route::get('/activities/{activity}/resources/{resource}/available-slots', ListActivityResourceAvailableSlotController::class)
             ->name('venue.activities.resources.available-slots')
