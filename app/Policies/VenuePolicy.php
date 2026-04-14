@@ -12,7 +12,7 @@ class VenuePolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasPermissionTo('venue.view') || $user->hasPermissionTo('my-venue.view');
     }
 
     /**
@@ -20,7 +20,7 @@ class VenuePolicy
      */
     public function view(User $user, Venue $venue): bool
     {
-        return true;
+        return $user->hasPermissionTo('venue.view') || $user->hasPermissionTo('my-venue.view');
     }
 
     /**
@@ -52,7 +52,7 @@ class VenuePolicy
      */
     public function delete(User $user, Venue $venue): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasPermissionTo('venue.delete');
     }
 
     /**

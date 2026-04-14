@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Venue extends Model
 {
@@ -16,6 +17,11 @@ class Venue extends Model
         "latitude",
         "longitude",
     ];
+
+    public function resources(): HasMany
+    {
+        return $this->hasMany(Resource::class);
+    }
 
     public function category(): BelongsTo
     {

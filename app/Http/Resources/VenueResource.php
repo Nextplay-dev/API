@@ -22,6 +22,7 @@ class VenueResource extends JsonResource
                 $request->user()?->hasPermissionTo('venue.managers.view'),
                 fn () => UserResource::collection($this->whenLoaded("managers"))
             ),
+            "resources" => ResourceResource::collection($this->whenLoaded("resources")),
             "latitude" => $this->latitude,
             "longitude" => $this->longitude,
         ];

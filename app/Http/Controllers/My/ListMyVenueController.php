@@ -24,7 +24,7 @@ class ListMyVenueController extends Controller
                 'name',
             ])
             ->defaultSort('name')
-            ->with('category')
+            ->with('category', 'resources')
             ->paginate(request()->integer('per_page', 20))
             ->appends(request()->query());
 

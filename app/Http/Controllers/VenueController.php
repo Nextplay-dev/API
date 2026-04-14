@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateVenueRequest;
 use App\Http\Resources\VenueResource;
 use App\Models\Venue;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Gate;
 
 class VenueController extends Controller
 {
@@ -21,7 +22,7 @@ class VenueController extends Controller
     }
 
     public function show(Venue $venue): JsonResponse {
-        $this->authorize('view', $venue);
+        Gate::authorize('view', $venue);
         $venue->load(['tournaments', 'category', 'managers']);
 
         return VenueResource::make($venue)->response();
@@ -29,6 +30,7 @@ class VenueController extends Controller
 
     public function store(StoreVenueRequest $request, StoreVenueAction $action): JsonResponse
     {
+        Gate::authorize('create', Venue::class);
         $venue = $action->handle($request);
 
         return VenueResource::make($venue)->response()->setStatusCode(201);
@@ -36,7 +38,7 @@ class VenueController extends Controller
 
     public function update(UpdateVenueRequest $request, Venue $venue, UpdateVenueAction $action): JsonResponse
     {
-        $this->authorize('update', $venue);
+        Gate::authorize('update', $venue);
         $venue = $action->handle($request, $venue);
 
         return VenueResource::make($venue)->response();
@@ -44,7 +46,7 @@ class VenueController extends Controller
 
     public function destroy(Venue $venue, DeleteVenueAction $action): JsonResponse
     {
-        $this->authorize('delete', $venue);
+        Gate::authorize('delete', $venue);
         $action->handle($venue);
 
         return response()->json(null, 204);

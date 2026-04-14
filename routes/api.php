@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\ResourceController;
+use App\Http\Controllers\AvailabilityController;
+use App\Http\Controllers\ExceptionController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\SlotController;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +42,18 @@ Route::prefix('/v1')->group(function () {
         ->middleware('auth:sanctum');
 
     Route::get('slots', [SlotController::class, 'index'])
+        ->middleware('auth:sanctum');
+
+    Route::apiResource('venues.resources', ResourceController::class)
+        ->shallow()
+        ->middleware('auth:sanctum');
+
+    Route::apiResource('resources.availabilities', AvailabilityController::class)
+        ->shallow()
+        ->middleware('auth:sanctum');
+
+    Route::apiResource('resources.exceptions', ExceptionController::class)
+        ->shallow()
         ->middleware('auth:sanctum');
 
 });
