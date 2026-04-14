@@ -13,7 +13,7 @@ Route::controller(MeController::class)
         Route::controller(MeBookingController::class)->group(function() {
 
             Route::get('bookings', 'index')
-                ->middleware('permission:me.view')
+                ->middleware('permission:me.booking.view')
                 ->name('me.bookings.index');
 
         });

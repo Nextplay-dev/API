@@ -23,6 +23,12 @@ class VenuePolicy
         return $user->hasPermissionTo('venue.view') || $user->hasPermissionTo('my-venue.view');
     }
 
+    public function viewBookings(User $user, Venue $venue): bool
+    {
+        return $user->hasPermissionTo('bookings.view') ||
+            ($user->hasPermissionTo('my-venue.view') && $venue->managers()->whereUserId($user->id)->exists());
+    }
+
     /**
      * Determine whether the user can create models.
      */

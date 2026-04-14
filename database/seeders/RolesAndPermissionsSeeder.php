@@ -23,6 +23,11 @@ class RolesAndPermissionsSeeder extends Seeder
         'venue.managers.update',
         'venue.delete',
 
+        'booking.view',
+        'booking.create',
+        'booking.update',
+        'booking.delete',
+
         'category.view',
         'category.create',
         'category.update',
@@ -49,6 +54,7 @@ class RolesAndPermissionsSeeder extends Seeder
         'permission.view',
 
         'me.view',
+        'me.booking.view',
         'me.update',
 
         'my-venue.view',
@@ -63,7 +69,9 @@ class RolesAndPermissionsSeeder extends Seeder
                 'tournament.book',
                 'tournament.cancel-booking',
                 'me.view',
+                'me.booking.view',
                 'me.update',
+                'booking.create',
             ],
             'weight' => 10,
         ],

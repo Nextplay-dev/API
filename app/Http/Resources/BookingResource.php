@@ -12,6 +12,7 @@ class BookingResource extends JsonResource
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
+            'user' => PublicUserResource::make($this->whenLoaded('user')),
             'resource' => new ResourceResource($this->whenLoaded('resource')),
             'activity' => ActivityResource::make($this->whenLoaded('activity')),
             'start_at' => $this->start_at->toIso8601String(),

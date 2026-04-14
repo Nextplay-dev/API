@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ListActivityResourceAvailableSlotController;
+use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\VenueController;
 use App\Models\Activity;
 use App\Models\Resource;
