@@ -1,0 +1,2533 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Nextplay API",
+    "description": "REST API for the Nextplay platform. Most endpoints require a Bearer token obtained via login or register. Permissions are enforced per endpoint and are listed in each operation description.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/v1",
+      "description": "API v1"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Sanctum personal access token. Obtain via POST /v1/auth/login or POST /v1/auth/register."
+      }
+    },
+    "schemas": {
+      "Permission": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "venue.view" }
+        }
+      },
+      "PublicUser": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "John Doe" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "John Doe" },
+          "email": { "type": "string", "format": "email", "example": "john@example.com" },
+          "roles": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of role names assigned to the user (included when roles are loaded)",
+            "example": ["admin", "manager"]
+          },
+          "permissions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Merged list of all permission names (from direct permissions and roles)",
+            "example": ["venue.view", "venue.create"]
+          },
+          "highest_role_weight": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Weight of the highest-priority role assigned to the user",
+            "example": 100
+          },
+          "created_at": { "type": "string", "format": "date-time", "example": "2024-01-01T00:00:00.000000Z" }
+        }
+      },
+      "Role": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "admin" },
+          "is_locked": { "type": "boolean", "example": false },
+          "weight": { "type": "integer", "example": 100 },
+          "permissions": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Permission" },
+            "description": "Included when permissions relationship is loaded"
+          }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Sports" },
+          "icon": { "type": "string", "nullable": true, "example": "🏟️" },
+          "color": { "type": "string", "nullable": true, "pattern": "^#[A-Fa-f0-9]{6}$", "example": "#FF5733" }
+        }
+      },
+      "Activity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Tennis" },
+          "duration_minutes": { "type": "integer", "example": 60 },
+          "slot_interval_minutes": { "type": "integer", "example": 30 },
+          "rules": {
+            "type": "object",
+            "nullable": true,
+            "description": "Arbitrary rules JSON for the activity",
+            "additionalProperties": true
+          }
+        }
+      },
+      "Resource": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "venue_id": { "type": "integer", "example": 5 },
+          "name": { "type": "string", "example": "Court 1" },
+          "type": { "type": "string", "example": "tennis_court" },
+          "capacity": { "type": "integer", "example": 4 },
+          "venue": {
+            "allOf": [{ "$ref": "#/components/schemas/Venue" }],
+            "description": "Included when the venue relationship is loaded",
+            "nullable": true
+          }
+        }
+      },
+      "Venue": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Downtown Sports Arena" },
+          "address": { "type": "string", "example": "123 Main St, City" },
+          "media": { "type": "string", "example": "https://cdn.example.com/venue.jpg" },
+          "tournaments_count": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Included when tournaments count has been requested",
+            "example": 3
+          },
+          "tournaments": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Tournament" },
+            "description": "Included when tournaments relationship is loaded"
+          },
+          "category_id": { "type": "integer", "nullable": true, "example": 2 },
+          "category": {
+            "allOf": [{ "$ref": "#/components/schemas/Category" }],
+            "description": "Included when the category relationship is loaded",
+            "nullable": true
+          },
+          "managers": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/User" },
+            "description": "Included when the managers relationship is loaded and the caller has permission venue.managers.view"
+          },
+          "resources": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Resource" },
+            "description": "Included when the resources relationship is loaded"
+          },
+          "activities": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Activity" },
+            "description": "Included when the activities relationship is loaded"
+          },
+          "latitude": { "type": "number", "format": "float", "nullable": true, "example": 48.8566 },
+          "longitude": { "type": "number", "format": "float", "nullable": true, "example": 2.3522 }
+        }
+      },
+      "Availability": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "resource_id": { "type": "integer", "example": 3 },
+          "day_of_week": {
+            "type": "integer",
+            "description": "Day of week: 0 = Sunday, 6 = Saturday",
+            "minimum": 0,
+            "maximum": 6,
+            "example": 1
+          },
+          "start_time": { "type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$", "example": "08:00" },
+          "end_time": { "type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$", "example": "18:00" }
+        }
+      },
+      "Exception": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "resource_id": { "type": "integer", "example": 3 },
+          "start_at": { "type": "string", "format": "date-time", "example": "2024-12-25T00:00:00+00:00" },
+          "end_at": { "type": "string", "format": "date-time", "example": "2024-12-25T23:59:59+00:00" },
+          "type": {
+            "type": "string",
+            "enum": ["closed", "maintenance"],
+            "example": "closed"
+          }
+        }
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "user_id": { "type": "integer", "example": 7 },
+          "user": {
+            "allOf": [{ "$ref": "#/components/schemas/PublicUser" }],
+            "description": "Included when the user relationship is loaded",
+            "nullable": true
+          },
+          "resource": {
+            "allOf": [{ "$ref": "#/components/schemas/Resource" }],
+            "description": "Included when the resource relationship is loaded",
+            "nullable": true
+          },
+          "activity": {
+            "allOf": [{ "$ref": "#/components/schemas/Activity" }],
+            "description": "Included when the activity relationship is loaded",
+            "nullable": true
+          },
+          "start_at": { "type": "string", "format": "date-time", "example": "2024-06-01T10:00:00+00:00" },
+          "end_at": { "type": "string", "format": "date-time", "example": "2024-06-01T11:00:00+00:00" },
+          "units": { "type": "integer", "nullable": true, "example": 1 },
+          "status": { "type": "string", "nullable": true, "example": "confirmed" },
+          "payment": { "type": "object", "nullable": true, "additionalProperties": true, "description": "Payment details" },
+          "created_at": { "type": "string", "format": "date-time", "example": "2024-05-20T09:00:00.000000Z" }
+        }
+      },
+      "Tournament": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Spring Championship" },
+          "game": { "type": "string", "nullable": true, "example": "Tennis" },
+          "media": { "type": "string", "nullable": true, "example": "https://cdn.example.com/tournament.jpg" },
+          "level": { "type": "string", "nullable": true, "example": "intermediate" },
+          "start_date": { "type": "string", "format": "date", "nullable": true, "example": "2024-06-01" },
+          "end_date": { "type": "string", "format": "date", "nullable": true, "example": "2024-06-07" },
+          "bookings_count": { "type": "integer", "example": 12 },
+          "venues": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Venue" },
+            "description": "Included when the venues relationship is loaded"
+          },
+          "bookings": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Booking" },
+            "description": "Included when the bookings relationship is loaded"
+          }
+        }
+      },
+      "AvailableSlot": {
+        "type": "object",
+        "description": "A time slot available for booking on a resource for a specific activity",
+        "properties": {
+          "start_at": { "type": "string", "format": "date-time", "example": "2024-06-01T08:00:00+00:00" },
+          "end_at": { "type": "string", "format": "date-time", "example": "2024-06-01T09:00:00+00:00" }
+        }
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "current_page": { "type": "integer", "example": 1 },
+          "from": { "type": "integer", "nullable": true, "example": 1 },
+          "last_page": { "type": "integer", "example": 5 },
+          "per_page": { "type": "integer", "example": 20 },
+          "to": { "type": "integer", "nullable": true, "example": 20 },
+          "total": { "type": "integer", "example": 100 },
+          "path": { "type": "string", "example": "https://api.example.com/v1/my-venues" }
+        }
+      },
+      "PaginationLinks": {
+        "type": "object",
+        "properties": {
+          "first": { "type": "string", "nullable": true, "example": "https://api.example.com/v1/my-venues?page=1" },
+          "last": { "type": "string", "nullable": true, "example": "https://api.example.com/v1/my-venues?page=5" },
+          "prev": { "type": "string", "nullable": true, "example": null },
+          "next": { "type": "string", "nullable": true, "example": "https://api.example.com/v1/my-venues?page=2" }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "The given data was invalid." },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "example": { "email": ["The email field is required."] }
+          }
+        }
+      },
+      "UnauthenticatedError": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Unauthenticated." }
+        }
+      },
+      "ForbiddenError": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "This action is unauthorized." }
+        }
+      },
+      "NotFoundError": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "No query results for model." }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "description": "Sanctum personal access token", "example": "1|abc123..." },
+          "user": { "$ref": "#/components/schemas/User" }
+        }
+      }
+    },
+    "responses": {
+      "Unauthenticated": {
+        "description": "Unauthenticated – Bearer token is missing or invalid",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/UnauthenticatedError" }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Forbidden – the caller lacks the required permission",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ForbiddenError" }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not Found – the requested resource does not exist",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/NotFoundError" }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Unprocessable Entity – validation failed",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ValidationError" }
+          }
+        }
+      },
+      "NoContent": {
+        "description": "No Content – the resource was deleted successfully"
+      }
+    }
+  },
+  "security": [
+    { "bearerAuth": [] }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "description": "Returns the health status of the application including database connectivity.",
+        "operationId": "healthCheck",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Application is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable – a dependency (e.g. database) is unreachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Database connection failed" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login",
+        "description": "Authenticate a user with email and password and receive a Sanctum token.",
+        "operationId": "authLogin",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email", "example": "john@example.com" },
+                  "password": { "type": "string", "format": "password", "example": "secret123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "429": {
+            "description": "Too Many Requests – rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register",
+        "description": "Create a new user account and receive a Sanctum token.",
+        "operationId": "authRegister",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password"],
+                "properties": {
+                  "name": { "type": "string", "example": "John Doe" },
+                  "email": { "type": "string", "format": "email", "example": "john@example.com" },
+                  "password": { "type": "string", "format": "password", "minLength": 1, "example": "secret123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registration successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/v1/auth/logout": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Logout",
+        "description": "Revoke the current access token. Requires authentication (auth:sanctum).",
+        "operationId": "authLogout",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Logged out successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Logged out" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" }
+        }
+      }
+    },
+    "/v1/auth/google/redirect": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Google OAuth redirect",
+        "description": "Redirects the user to Google's OAuth consent page. Accepts an optional `redirect_to` query parameter (must start with `exp://` or be in the configured allowed redirect URLs) and an optional `origin_referrer` / `X-Origin-Referrer` header.",
+        "operationId": "googleRedirect",
+        "security": [],
+        "parameters": [
+          {
+            "name": "redirect_to",
+            "in": "query",
+            "description": "Deep-link or allowed URL to redirect to after authentication (default: exp://)",
+            "required": false,
+            "schema": { "type": "string", "example": "exp://" }
+          },
+          {
+            "name": "origin_referrer",
+            "in": "query",
+            "description": "Optional referrer passed through the OAuth state",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to Google OAuth consent page"
+          },
+          "400": {
+            "description": "Bad Request – invalid redirect URL"
+          }
+        }
+      }
+    },
+    "/v1/auth/google/callback": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Google OAuth callback",
+        "description": "Handles the callback from Google OAuth. Authenticates or registers the user and redirects to the `redirect_to` URL with a `token` query parameter on success, or an `error` parameter on failure.",
+        "operationId": "googleCallback",
+        "security": [],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "description": "OAuth authorization code provided by Google",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "description": "Base64-encoded JSON state containing redirect_to and origin_referrer",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to the deep-link with token or error query parameter"
+          }
+        }
+      }
+    },
+    "/v1/me": {
+      "get": {
+        "tags": ["Me"],
+        "summary": "Get current user",
+        "description": "Returns the authenticated user's profile including roles and permissions.\n\n**Required permission:** `me.view`",
+        "operationId": "meIndex",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/v1/me/bookings": {
+      "get": {
+        "tags": ["Me"],
+        "summary": "List current user's bookings",
+        "description": "Returns a list of bookings belonging to the authenticated user.\n\n**Required permission:** `me.booking.view`",
+        "operationId": "meBookingsIndex",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Booking" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/v1/venues": {
+      "get": {
+        "tags": ["Venues"],
+        "summary": "List venues",
+        "description": "Returns a list of all venues.\n\n**Required permission:** `venue.view`",
+        "operationId": "venueIndex",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of venues",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Venue" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["Venues"],
+        "summary": "Create a venue",
+        "description": "Creates a new venue. Authorization is enforced via the `VenuePolicy::create` policy.\n\n**Required permission:** `venue.create`",
+        "operationId": "venueStore",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "address", "media", "category_id"],
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "example": "Downtown Arena" },
+                  "address": { "type": "string", "maxLength": 255, "example": "123 Main St" },
+                  "media": { "type": "string", "maxLength": 255, "example": "https://cdn.example.com/venue.jpg" },
+                  "category_id": { "type": "integer", "description": "Must exist in the categories table", "example": 1 },
+                  "latitude": { "type": "number", "format": "float", "minimum": -90, "maximum": 90, "nullable": true, "example": 48.8566 },
+                  "longitude": { "type": "number", "format": "float", "minimum": -180, "maximum": 180, "nullable": true, "example": 2.3522 },
+                  "manager_ids": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": { "type": "integer" },
+                    "description": "User IDs to assign as venue managers",
+                    "example": [2, 3]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Venue created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Venue" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/v1/venues/{venue}": {
+      "get": {
+        "tags": ["Venues"],
+        "summary": "Get a venue",
+        "description": "Returns a single venue with its tournaments, category, managers, resources, and activities. Authorization is enforced via the `VenuePolicy::view` policy.\n\n**Required permission:** `venue.view`",
+        "operationId": "venueShow",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "venue",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Venue ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Venue details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Venue" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "tags": ["Venues"],
+        "summary": "Update a venue",
+        "description": "Updates an existing venue. Authorization is enforced via the `VenuePolicy::update` policy.\n\n**Required permission:** `venue.update`",
+        "operationId": "venueUpdate",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "venue",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Venue ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "example": "Downtown Arena" },
+                  "address": { "type": "string", "maxLength": 255, "example": "123 Main St" },
+                  "media": { "type": "string", "maxLength": 255, "example": "https://cdn.example.com/venue.jpg" },
+                  "category_id": { "type": "integer", "description": "Must exist in the categories table", "example": 1 },
+                  "latitude": { "type": "number", "format": "float", "minimum": -90, "maximum": 90, "nullable": true, "example": 48.8566 },
+                  "longitude": { "type": "number", "format": "float", "minimum": -180, "maximum": 180, "nullable": true, "example": 2.3522 },
+                  "manager_ids": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": { "type": "integer" },
+                    "description": "User IDs to assign as venue managers",
+                    "example": [2, 3]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Venue updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Venue" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      },
+      "delete": {
+        "tags": ["Venues"],
+        "summary": "Delete a venue",
+        "description": "Deletes an existing venue. Authorization is enforced via the `VenuePolicy::delete` policy.\n\n**Required permission:** `venue.delete`",
+        "operationId": "venueDestroy",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "venue",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Venue ID"
+          }
+        ],
+        "responses": {
+          "204": { "$ref": "#/components/responses/NoContent" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/venues/{venue}/activities": {
+      "get": {
+        "tags": ["Venue Activities"],
+        "summary": "List activities for a venue",
+        "description": "Returns a filtered and sorted list of activities for a venue. Authorization is enforced via `ActivityPolicy::viewAny`.\n\n**Required permission:** `venue.view`\n\nSupports filtering and sorting via Spatie QueryBuilder.",
+        "operationId": "venueActivityIndex",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "venue",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Venue ID"
+          },
+          {
+            "name": "filter[name]",
+            "in": "query",
+            "description": "Partial match filter on the activity name",
+            "required": false,
+            "schema": { "type": "string", "example": "Tennis" }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort field. Prefix with `-` for descending. Allowed: `name`, `duration_minutes`, `slot_interval_minutes`",
+            "required": false,
+            "schema": { "type": "string", "example": "name" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of activities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Activity" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "post": {
+        "tags": ["Venue Activities"],
+        "summary": "Create an activity for a venue",
+        "description": "Creates a new activity for a venue. Authorization is enforced via `ActivityPolicy::create`.\n\n**Required permission:** `venue.create`",
+        "operationId": "venueActivityStore",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "venue",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Venue ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "duration_minutes", "slot_interval_minutes"],
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "example": "Tennis" },
+                  "duration_minutes": { "type": "integer", "minimum": 1, "example": 60 },
+                  "slot_interval_minutes": { "type": "integer", "minimum": 1, "example": 30 },
+                  "rules_json": {
+                    "type": "object",
+                    "nullable": true,
+                    "additionalProperties": true,
+                    "description": "Arbitrary rules for the activity"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Activity created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Activity" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/v1/venues/{venue}/activities/{activity}": {
+      "get": {
+        "tags": ["Venue Activities"],
+        "summary": "Get an activity",
+        "description": "Returns a single activity belonging to a venue. Authorization is enforced via `ActivityPolicy::view`.\n\n**Required permission:** `venue.view`",
+        "operationId": "venueActivityShow",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "venue",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Venue ID"
+          },
+          {
+            "name": "activity",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Activity ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Activity details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Activity" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "tags": ["Venue Activities"],
+        "summary": "Update an activity",
+        "description": "Updates an existing activity. Authorization is enforced via `ActivityPolicy::update`.\n\n**Required permission:** `venue.update`",
+        "operationId": "venueActivityUpdate",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "venue",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Venue ID"
+          },
+          {
+            "name": "activity",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Activity ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "example": "Tennis" },
+                  "duration_minutes": { "type": "integer", "minimum": 1, "example": 60 },
+                  "slot_interval_minutes": { "type": "integer", "minimum": 1, "example": 30 },
+                  "rules_json": {
+                    "type": "object",
+                    "nullable": true,
+                    "additionalProperties": true,
+                    "description": "Arbitrary rules for the activity"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Activity updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Activity" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      },
+      "delete": {
+        "tags": ["Venue Activities"],
+        "summary": "Delete an activity",
+        "description": "Deletes an existing activity. Authorization is enforced via `ActivityPolicy::delete`.\n\n**Required permission:** `venue.delete`",
+        "operationId": "venueActivityDestroy",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "venue",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Venue ID"
+          },
+          {
+            "name": "activity",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Activity ID"
+          }
+        ],
+        "responses": {
+          "204": { "$ref": "#/components/responses/NoContent" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/venues/{venue}/activities/{activity}/resources/{resource}/available-slots": {
+      "get": {
+        "tags": ["Venue Activities"],
+        "summary": "List available slots for a resource",
+        "description": "Returns all available booking slots for a specific resource within a given date range.\n\n**Required permission:** `venue.view`",
+        "operationId": "venueActivityResourceAvailableSlots",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "venue",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Venue ID"
+          },
+          {
+            "name": "activity",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Activity ID"
+          },
+          {
+            "name": "resource",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Resource ID"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "format": "date", "example": "2024-06-01" },
+            "description": "Start of the date range (inclusive)"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "format": "date", "example": "2024-06-07" },
+            "description": "End of the date range (inclusive, must be after `from`)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of available time slots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/AvailableSlot" }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/v1/venues/{venue}/resources": {
+      "get": {
+        "tags": ["Resources"],
+        "summary": "List resources for a venue",
+        "description": "Returns all resources belonging to a venue. Authorization is enforced via `VenuePolicy::view`.",
+        "operationId": "venueResourceIndex",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "venue",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Venue ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of resources",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Resource" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "post": {
+        "tags": ["Resources"],
+        "summary": "Create a resource for a venue",
+        "description": "Creates a new resource for a venue. Authorization is enforced via `VenuePolicy::update`.",
+        "operationId": "venueResourceStore",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "venue",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Venue ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "type", "capacity"],
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "example": "Court 1" },
+                  "type": { "type": "string", "maxLength": 255, "example": "tennis_court" },
+                  "capacity": { "type": "integer", "minimum": 1, "example": 4 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Resource created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Resource" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/v1/resources/{resource}": {
+      "get": {
+        "tags": ["Resources"],
+        "summary": "Get a resource",
+        "description": "Returns a single resource. Authorization is enforced via `VenuePolicy::view` on the parent venue.",
+        "operationId": "resourceShow",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "resource",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Resource ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Resource" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "tags": ["Resources"],
+        "summary": "Update a resource",
+        "description": "Updates an existing resource. Authorization is enforced via `VenuePolicy::update` on the parent venue.",
+        "operationId": "resourceUpdate",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "resource",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Resource ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "example": "Court 1" },
+                  "type": { "type": "string", "maxLength": 255, "example": "tennis_court" },
+                  "capacity": { "type": "integer", "minimum": 1, "example": 4 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resource updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Resource" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      },
+      "delete": {
+        "tags": ["Resources"],
+        "summary": "Delete a resource",
+        "description": "Deletes an existing resource. Authorization is enforced via `VenuePolicy::update` on the parent venue.",
+        "operationId": "resourceDestroy",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "resource",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Resource ID"
+          }
+        ],
+        "responses": {
+          "204": { "$ref": "#/components/responses/NoContent" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/resources/{resource}/bookings": {
+      "get": {
+        "tags": ["Bookings"],
+        "summary": "List bookings for a resource",
+        "description": "Returns all bookings for a resource, ordered by start time, with associated activity and user. Authorization is enforced via `VenuePolicy::viewBookings` on the parent venue.",
+        "operationId": "resourceBookingIndex",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "resource",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Resource ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Booking" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/resources/{resource}/availabilities": {
+      "get": {
+        "tags": ["Availabilities"],
+        "summary": "List availabilities for a resource",
+        "description": "Returns all availability windows for a resource. Authorization is enforced via `VenuePolicy::view` on the parent venue.",
+        "operationId": "resourceAvailabilityIndex",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "resource",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Resource ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of availabilities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Availability" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "post": {
+        "tags": ["Availabilities"],
+        "summary": "Create an availability for a resource",
+        "description": "Creates a new availability window for a resource. Validates that the new window does not overlap with existing ones. Authorization is enforced via `VenuePolicy::update` on the parent venue.",
+        "operationId": "resourceAvailabilityStore",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "resource",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Resource ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["day_of_week", "start_time", "end_time"],
+                "properties": {
+                  "day_of_week": { "type": "integer", "minimum": 0, "maximum": 6, "description": "0 = Sunday … 6 = Saturday", "example": 1 },
+                  "start_time": { "type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$", "example": "08:00" },
+                  "end_time": { "type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$", "description": "Must be after start_time", "example": "18:00" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Availability created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Availability" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/v1/availabilities/{availability}": {
+      "put": {
+        "tags": ["Availabilities"],
+        "summary": "Update an availability",
+        "description": "Updates an existing availability window. Validates that the updated window does not overlap with other windows on the same resource. Authorization is enforced via `VenuePolicy::update` on the grandparent venue.",
+        "operationId": "availabilityUpdate",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "availability",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Availability ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "day_of_week": { "type": "integer", "minimum": 0, "maximum": 6, "description": "0 = Sunday … 6 = Saturday", "example": 1 },
+                  "start_time": { "type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$", "example": "08:00" },
+                  "end_time": { "type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$", "description": "Must be after start_time", "example": "18:00" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Availability updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Availability" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      },
+      "delete": {
+        "tags": ["Availabilities"],
+        "summary": "Delete an availability",
+        "description": "Deletes an existing availability window. Authorization is enforced via `VenuePolicy::update` on the grandparent venue.",
+        "operationId": "availabilityDestroy",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "availability",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Availability ID"
+          }
+        ],
+        "responses": {
+          "204": { "$ref": "#/components/responses/NoContent" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/resources/{resource}/exceptions": {
+      "get": {
+        "tags": ["Exceptions"],
+        "summary": "List exceptions for a resource",
+        "description": "Returns all exception windows (closed periods / maintenance) for a resource. Authorization is enforced via `VenuePolicy::view` on the parent venue.",
+        "operationId": "resourceExceptionIndex",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "resource",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Resource ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of exceptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Exception" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "post": {
+        "tags": ["Exceptions"],
+        "summary": "Create an exception for a resource",
+        "description": "Creates a new exception window (closed period or maintenance) for a resource. The `start_at` must be in the future. Authorization is enforced via `VenuePolicy::update` on the parent venue.",
+        "operationId": "resourceExceptionStore",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "resource",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Resource ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["start_at", "end_at", "type"],
+                "properties": {
+                  "start_at": { "type": "string", "format": "date-time", "description": "Must be a future date", "example": "2024-12-25T00:00:00Z" },
+                  "end_at": { "type": "string", "format": "date-time", "description": "Must be after start_at", "example": "2024-12-25T23:59:59Z" },
+                  "type": { "type": "string", "enum": ["closed", "maintenance"], "example": "closed" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Exception created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Exception" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/v1/exceptions/{exception}": {
+      "put": {
+        "tags": ["Exceptions"],
+        "summary": "Update an exception",
+        "description": "Updates an existing exception window. Authorization is enforced via `VenuePolicy::update` on the grandparent venue.",
+        "operationId": "exceptionUpdate",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "exception",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Exception ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "start_at": { "type": "string", "format": "date-time", "example": "2024-12-25T00:00:00Z" },
+                  "end_at": { "type": "string", "format": "date-time", "description": "Must be after start_at", "example": "2024-12-25T23:59:59Z" },
+                  "type": { "type": "string", "enum": ["closed", "maintenance"], "example": "maintenance" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exception updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Exception" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      },
+      "delete": {
+        "tags": ["Exceptions"],
+        "summary": "Delete an exception",
+        "description": "Deletes an existing exception window. Authorization is enforced via `VenuePolicy::update` on the grandparent venue.",
+        "operationId": "exceptionDestroy",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "exception",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Exception ID"
+          }
+        ],
+        "responses": {
+          "204": { "$ref": "#/components/responses/NoContent" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/my-venues": {
+      "get": {
+        "tags": ["My Venues"],
+        "summary": "List venues managed by the current user",
+        "description": "Returns a paginated list of venues managed by the authenticated user. Supports filtering by name and sorting.\n\n**Required permission:** `my-venue.view`",
+        "operationId": "myVenueIndex",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "filter[name]",
+            "in": "query",
+            "description": "Partial match filter on the venue name",
+            "required": false,
+            "schema": { "type": "string", "example": "Arena" }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort field. Prefix with `-` for descending. Allowed: `name`. Default: `name`",
+            "required": false,
+            "schema": { "type": "string", "example": "name" }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Number of results per page (default: 20)",
+            "required": false,
+            "schema": { "type": "integer", "example": 20 }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "required": false,
+            "schema": { "type": "integer", "example": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of managed venues",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Venue" }
+                    },
+                    "links": { "$ref": "#/components/schemas/PaginationLinks" },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/v1/tournaments": {
+      "get": {
+        "tags": ["Tournaments"],
+        "summary": "List tournaments",
+        "description": "Returns all tournaments with their associated activities.\n\n**Required permission:** `tournament.view`",
+        "operationId": "tournamentIndex",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of tournaments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Tournament" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/v1/tournaments/{tournament}": {
+      "get": {
+        "tags": ["Tournaments"],
+        "summary": "Get a tournament",
+        "description": "Returns a single tournament with its activities, bookings, and booking users.\n\n**Required permission:** `tournament.view`",
+        "operationId": "tournamentShow",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "tournament",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Tournament ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tournament details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Tournament" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/tournaments/{tournament}/book": {
+      "post": {
+        "tags": ["Tournaments"],
+        "summary": "Book a tournament",
+        "description": "Books the authenticated user into a tournament.\n\n**Required permission:** `tournament.book`",
+        "operationId": "tournamentBook",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "tournament",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Tournament ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tournament booked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Tournament booked successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/tournaments/{tournament}/cancel-booking": {
+      "post": {
+        "tags": ["Tournaments"],
+        "summary": "Cancel a tournament booking",
+        "description": "Cancels the authenticated user's booking in a tournament.\n\n**Required permission:** `tournament.cancel-booking`",
+        "operationId": "tournamentCancelBooking",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "tournament",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Tournament ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tournament booking cancelled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Tournament booking cancelled successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/categories": {
+      "get": {
+        "tags": ["Categories"],
+        "summary": "List categories",
+        "description": "Returns all categories.\n\n**Required permission:** `category.view`",
+        "operationId": "categoryIndex",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of categories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Category" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["Categories"],
+        "summary": "Create a category",
+        "description": "Creates a new category.\n\n**Required permission:** `category.create`",
+        "operationId": "categoryStore",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "description": "Must be unique", "example": "Sports" },
+                  "icon": { "type": "string", "maxLength": 255, "nullable": true, "example": "🏟️" },
+                  "color": { "type": "string", "nullable": true, "pattern": "^#[A-Fa-f0-9]{6}$", "example": "#FF5733" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Category created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Category" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/v1/categories/{category}": {
+      "get": {
+        "tags": ["Categories"],
+        "summary": "Get a category",
+        "description": "Returns a single category.\n\n**Required permission:** `category.view`",
+        "operationId": "categoryShow",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Category ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Category" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "tags": ["Categories"],
+        "summary": "Update a category",
+        "description": "Updates an existing category.\n\n**Required permission:** `category.update`",
+        "operationId": "categoryUpdate",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Category ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "description": "Must be unique (excluding current record)", "example": "Sports" },
+                  "icon": { "type": "string", "maxLength": 255, "nullable": true, "example": "🏟️" },
+                  "color": { "type": "string", "nullable": true, "pattern": "^#[A-Fa-f0-9]{6}$", "example": "#FF5733" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Category updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Category" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      },
+      "delete": {
+        "tags": ["Categories"],
+        "summary": "Delete a category",
+        "description": "Deletes an existing category.\n\n**Required permission:** `category.delete`",
+        "operationId": "categoryDestroy",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Category ID"
+          }
+        ],
+        "responses": {
+          "204": { "$ref": "#/components/responses/NoContent" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "List users",
+        "description": "Returns a list of all users.\n\n**Required permission:** `user.view`",
+        "operationId": "userIndex",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/User" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["Users"],
+        "summary": "Create a user",
+        "description": "Creates a new user with optional role assignments.\n\n**Required permission:** `user.create`",
+        "operationId": "userStore",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password", "password_confirmation"],
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "example": "John Doe" },
+                  "email": { "type": "string", "format": "email", "maxLength": 255, "description": "Must be unique", "example": "john@example.com" },
+                  "password": { "type": "string", "minLength": 8, "example": "secret123" },
+                  "password_confirmation": { "type": "string", "example": "secret123" },
+                  "roles": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": { "type": "string" },
+                    "description": "Role names to assign to the user",
+                    "example": ["manager"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/v1/users/{user}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get a user",
+        "description": "Returns a single user with their roles and permissions.\n\n**Required permission:** `user.view`",
+        "operationId": "userShow",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "tags": ["Users"],
+        "summary": "Update a user",
+        "description": "Updates an existing user's profile and/or role assignments.\n\n**Required permission:** `user.update`",
+        "operationId": "userUpdate",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "User ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "example": "John Doe" },
+                  "email": { "type": "string", "format": "email", "maxLength": 255, "description": "Must be unique (excluding current user)", "example": "john@example.com" },
+                  "password": { "type": "string", "minLength": 8, "nullable": true, "example": "newpassword" },
+                  "password_confirmation": { "type": "string", "example": "newpassword" },
+                  "roles": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": { "type": "string" },
+                    "description": "Role names to assign to the user",
+                    "example": ["manager"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Delete a user",
+        "description": "Deletes an existing user.\n\n**Required permission:** `user.delete`",
+        "operationId": "userDestroy",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "204": { "$ref": "#/components/responses/NoContent" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/roles": {
+      "get": {
+        "tags": ["Roles"],
+        "summary": "List roles",
+        "description": "Returns a list of all roles.\n\n**Required permission:** `role.view`",
+        "operationId": "roleIndex",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of roles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Role" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["Roles"],
+        "summary": "Create a role",
+        "description": "Creates a new role with optional permission assignments.\n\n**Required permission:** `role.create`",
+        "operationId": "roleStore",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "weight"],
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "description": "Must be unique", "example": "manager" },
+                  "weight": { "type": "integer", "description": "Numeric priority weight for the role", "example": 50 },
+                  "permissions": {
+                    "type": "array",
+                    "items": { "type": "integer" },
+                    "description": "Permission IDs to assign to this role",
+                    "example": [1, 2, 3]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Role created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Role" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/v1/roles/{role}": {
+      "get": {
+        "tags": ["Roles"],
+        "summary": "Get a role",
+        "description": "Returns a single role with its permissions.\n\n**Required permission:** `role.view`",
+        "operationId": "roleShow",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "role",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Role ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Role" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "tags": ["Roles"],
+        "summary": "Update a role",
+        "description": "Updates an existing role and its permission assignments.\n\n**Required permission:** `role.update`",
+        "operationId": "roleUpdate",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "role",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Role ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "maxLength": 255, "description": "Must be unique (excluding current role)", "example": "manager" },
+                  "weight": { "type": "integer", "example": 50 },
+                  "permissions": {
+                    "type": "array",
+                    "items": { "type": "integer" },
+                    "description": "Permission IDs to assign to this role",
+                    "example": [1, 2, 3]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Role" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      },
+      "delete": {
+        "tags": ["Roles"],
+        "summary": "Delete a role",
+        "description": "Deletes an existing role.\n\n**Required permission:** `role.delete`",
+        "operationId": "roleDestroy",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "role",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Role ID"
+          }
+        ],
+        "responses": {
+          "204": { "$ref": "#/components/responses/NoContent" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/permissions": {
+      "get": {
+        "tags": ["Permissions"],
+        "summary": "List permissions",
+        "description": "Returns a list of all available permissions.\n\n**Required middleware:** `auth:sanctum`",
+        "operationId": "permissionIndex",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Permission" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" }
+        }
+      }
+    },
+    "/v1/bookings": {
+      "post": {
+        "tags": ["Bookings"],
+        "summary": "Create a booking",
+        "description": "Creates a new booking for a resource and activity in a specific time slot.\n\n**Required permission:** `booking.create`",
+        "operationId": "bookingStore",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["resource_id", "activity_id", "start_at", "end_at"],
+                "properties": {
+                  "resource_id": { "type": "integer", "description": "Must exist in the resources table", "example": 3 },
+                  "activity_id": { "type": "integer", "description": "Must exist in the activities table", "example": 1 },
+                  "start_at": { "type": "string", "format": "date-time", "example": "2024-06-01T10:00:00Z" },
+                  "end_at": { "type": "string", "format": "date-time", "description": "Must be after start_at", "example": "2024-06-01T11:00:00Z" },
+                  "units": { "type": "integer", "minimum": 1, "example": 1 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Booking created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/Booking" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    }
+  },
+  "tags": [
+    { "name": "Health", "description": "Application health check" },
+    { "name": "Authentication", "description": "Login, register, logout, and OAuth" },
+    { "name": "Me", "description": "Current authenticated user profile and bookings" },
+    { "name": "Venues", "description": "Venue management" },
+    { "name": "Venue Activities", "description": "Activity management within a venue" },
+    { "name": "My Venues", "description": "Venues managed by the current user" },
+    { "name": "Resources", "description": "Physical resources (courts, fields, etc.) belonging to venues" },
+    { "name": "Availabilities", "description": "Weekly availability windows for resources" },
+    { "name": "Exceptions", "description": "Exception windows (closed periods, maintenance) for resources" },
+    { "name": "Bookings", "description": "Booking management" },
+    { "name": "Tournaments", "description": "Tournament management and registration" },
+    { "name": "Categories", "description": "Venue category management" },
+    { "name": "Users", "description": "User management" },
+    { "name": "Roles", "description": "Role management" },
+    { "name": "Permissions", "description": "Permission listing" }
+  ]
+}
