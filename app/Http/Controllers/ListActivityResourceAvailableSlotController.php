@@ -18,8 +18,6 @@ class ListActivityResourceAvailableSlotController {
         ListActivityResourceAvailableSlotRequest $request,
         ListAvailableSlotsAction $action,
     ): JsonResponse {
-        abort_unless($activity->venue_id === $venue->id, 404);
-        abort_unless($resource->venue_id === $venue->id, 404);
 
         $dto = new ListAvailableSlotDTO(
             activity: $activity,

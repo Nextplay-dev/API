@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Activity extends Model
 {
@@ -20,23 +21,14 @@ class Activity extends Model
         'rules_json' => 'array',
     ];
 
+    public function resources(): HasMany
+    {
+        return $this->hasMany(Resource::class, 'venue_id', 'venue_id');
+    }
+
     public function getRule($key, $default = null)
     {
         return $this->rules_json[$key] ?? $default;
-    }
-
-    public function canUseSlot(Resource $resource, Carbon $start, Carbon $end): bool
-    {
-        $maxUnits = $resource->capacity;
-
-        $bookings = $resource->bookings()
-            ->where('start_at', '<', $end)
-            ->where('end_at', '>', $start)
-            ->get();
-
-        $used = $bookings->sum('units');
-
-        return ($used + 1) <= $maxUnits;
     }
 
     public function venue(): BelongsTo

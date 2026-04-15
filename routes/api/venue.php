@@ -1,16 +1,9 @@
 <?php
 
-use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ListActivityResourceAvailableSlotController;
-use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\VenueActivityController;
 use App\Http\Controllers\VenueController;
-use App\Models\Activity;
-use App\Models\Resource;
 use Illuminate\Support\Facades\Route;
-
-Route::model('activity', Activity::class);
-Route::model('resource', Resource::class);
 
 Route::controller(VenueController::class)
 ->group(function () {
@@ -24,10 +17,6 @@ Route::controller(VenueController::class)
         Route::get('/', 'show')
             ->name('venue.show')
             ->middleware('permission:venue.view');
-
-        Route::apiResource('activities', VenueActivityController::class)
-            ->middleware('auth:sanctum')
-            ->scopeBindings();
 
         Route::get('/activities/{activity}/resources/{resource}/available-slots', ListActivityResourceAvailableSlotController::class)
             ->name('venue.activities.resources.available-slots')
@@ -46,4 +35,24 @@ Route::controller(VenueController::class)
             ->name('venue.destroy')
             ->middleware('permission:venue.delete');
     });
+});
+
+Route::controller(VenueActivityController::class)
+    ->scopeBindings()
+    ->group(function () {
+        Route::get('{venue}/activities/', 'index')
+            ->name('venue.activities.index')
+            ->middleware('permission:venue.view');
+        Route::get('{venue}/activities/{activity}', 'show')
+            ->name('venue.activities.show')
+            ->middleware('permission:venue.view');
+        Route::post('{venue}/activities/', 'store')
+            ->name('venue.activities.store')
+            ->middleware('permission:venue.create');
+        Route::put('{venue}/activities/{activity}', 'update')
+            ->name('venue.activities.update')
+            ->middleware('permission:venue.update');
+        Route::delete('{venue}/activities/{activity}', 'destroy')
+            ->name('venue.activities.destroy')
+            ->middleware('permission:venue.delete');
 });
