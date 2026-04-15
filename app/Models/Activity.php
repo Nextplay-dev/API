@@ -2,35 +2,45 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Activity extends Model
 {
     protected $fillable = [
-        "name",
-        "address",
-        "media",
-        "activity_category_id",
-        "latitude",
-        "longitude",
+        'name',
+        'duration_minutes',
+        'slot_interval_minutes',
+        'rules_json',
+        'venue_id',
     ];
 
-    public function category(): BelongsTo
+    protected $casts = [
+        'rules_json' => 'array',
+    ];
+
+    public function getRule($key, $default = null)
     {
-        return $this->belongsTo(ActivityCategory::class, 'activity_category_id');
+        return $this->rules_json[$key] ?? $default;
     }
 
-    public function tournaments(): BelongsToMany
+    public function canUseSlot(Resource $resource, Carbon $start, Carbon $end): bool
     {
-        return $this->belongsToMany(Tournament::class)
-            ->withPivot("host")
-            ->withTimestamps();
+        $maxUnits = $resource->capacity;
+
+        $bookings = $resource->bookings()
+            ->where('start_at', '<', $end)
+            ->where('end_at', '>', $start)
+            ->get();
+
+        $used = $bookings->sum('units');
+
+        return ($used + 1) <= $maxUnits;
     }
 
-    public function managers(): BelongsToMany
+    public function venue(): BelongsTo
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsTo(Venue::class);
     }
 }

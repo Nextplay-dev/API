@@ -10,20 +10,11 @@ class ActivityResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            "id" => $this->id,
-            "name" => $this->name,
-            "address" => $this->address,
-            "media" => $this->media,
-            "tournaments_count" => $this->whenCounted('tournaments'),
-            "tournaments" => TournamentResource::collection($this->whenLoaded("tournaments")),
-            "category_id" => $this->activity_category_id,
-            "category" => ActivityCategoryResource::make($this->whenLoaded("category")),
-            "managers" => $this->when(
-                $request->user()?->hasPermissionTo('activity.managers.view'),
-                fn () => UserResource::collection($this->whenLoaded("managers"))
-            ),
-            "latitude" => $this->latitude,
-            "longitude" => $this->longitude,
+            'id' => $this->id,
+            'name' => $this->name,
+            'duration_minutes' => $this->duration_minutes,
+            'slot_interval_minutes' => $this->slot_interval_minutes,
+            'rules' => $this->rules_json,
         ];
     }
 }

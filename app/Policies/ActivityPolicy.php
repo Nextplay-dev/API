@@ -4,71 +4,39 @@ namespace App\Policies;
 
 use App\Models\Activity;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
+use App\Models\Venue;
+use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ActivityPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    use HandlesAuthorization;
+
+    public function viewAny(User $user, Venue $venue): bool
     {
-        return false;
+        return $user->hasPermissionTo('activity.view') || 
+            ($user->hasPermissionTo('my-venue.view') && $venue->managers()->where('users.id', $user->id)->exists());
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Activity $activity): bool
     {
-        return true;
+        return $user->hasPermissionTo('activity.view') || 
+            ($user->hasPermissionTo('my-venue.view') && $activity->venue->managers()->where('users.id', $user->id)->exists());
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
+    public function create(User $user, Venue $venue): bool
     {
-        return $user->hasPermissionTo('activity.create');
+        return $user->hasPermissionTo('activity.create') || 
+            ($user->hasPermissionTo('my-venue.update') && $venue->managers()->where('users.id', $user->id)->exists());
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Activity $activity): bool
     {
-        if ($user->hasRole('admin')) {
-            return true;
-        }
-
-        if ($user->hasPermissionTo('activity.update')) {
-            return $activity->managers()->where('users.id', $user->id)->exists();
-        }
-
-        return false;
+        return $user->hasPermissionTo('activity.update') || 
+            ($user->hasPermissionTo('my-venue.update') && $activity->venue->managers()->where('users.id', $user->id)->exists());
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Activity $activity): bool
     {
-        return $user->hasRole('admin');
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Activity $activity): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Activity $activity): bool
-    {
-        return false;
+        return $user->hasPermissionTo('activity.delete');
     }
 }

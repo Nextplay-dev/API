@@ -16,9 +16,9 @@ class Tournament extends Model
         'end_date',
     ];
 
-    public function activities(): BelongsToMany
+    public function venues(): BelongsToMany
     {
-        return $this->belongsToMany(Activity::class)
+        return $this->belongsToMany(Venue::class)
             ->withPivot('host')
             ->withTimestamps();
     }

@@ -15,13 +15,9 @@ class StoreActivityRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'address' => ['required', 'string', 'max:255'],
-            'media' => ['required', 'string', 'max:255'],
-            'activity_category_id' => ['required', 'exists:activity_categories,id'],
-            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
-            'manager_ids' => ['nullable', 'array'],
-            'manager_ids.*' => ['exists:users,id'],
+            'duration_minutes' => ['required', 'integer', 'min:1'],
+            'slot_interval_minutes' => ['required', 'integer', 'min:1'],
+            'rules_json' => ['nullable', 'array'],
         ];
     }
 }

@@ -11,12 +11,16 @@ class BookingResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'payment' => $this->payment,
             'user_id' => $this->user_id,
-            'tournaments' => TournamentResource::collection($this->whenLoaded('tournaments')),
             'user' => PublicUserResource::make($this->whenLoaded('user')),
+            'resource' => new ResourceResource($this->whenLoaded('resource')),
+            'activity' => ActivityResource::make($this->whenLoaded('activity')),
+            'start_at' => $this->start_at->toIso8601String(),
+            'end_at' => $this->end_at->toIso8601String(),
+            'units' => $this->units,
+            'status' => $this->status,
+            'payment' => $this->payment,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
 }

@@ -2,7 +2,7 @@
  
 namespace App\DTOs;
  
-use Illuminate\Http\Request;
+use Illuminate\Foundation\Http\FormRequest;
  
 readonly class RoleDTO
 {
@@ -12,12 +12,12 @@ readonly class RoleDTO
         public int $weight = 0
     ) {}
  
-    public static function fromRequest(Request $request): self
+    public static function fromRequest(FormRequest $request): self
     {
         return new self(
-            name: $request->string('name'),
-            permissions: $request->has('permissions') ? $request->input('permissions', []) : null,
-            weight: $request->integer('weight', 0)
+            name: $request->validated('name'),
+            permissions: $request->has('permissions') ? $request->validated('permissions', []) : null,
+            weight: $request->validated('weight', 0)
         );
     }
  
