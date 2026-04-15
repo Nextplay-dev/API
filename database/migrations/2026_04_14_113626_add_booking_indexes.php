@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -29,16 +30,6 @@ return new class extends Migration
             ON bookings (resource_id, start_at, end_at)
             WHERE status = 'confirmed'
         ");
-
-        DB::statement("
-            ALTER TABLE bookings
-            ADD CONSTRAINT no_overlap_per_resource
-            EXCLUDE USING gist (
-                resource_id WITH =,
-                tsrange(start_at, end_at) WITH &&
-            )
-            WHERE (status = 'confirmed')
-        ");
     }
 
     /**
@@ -60,10 +51,5 @@ return new class extends Migration
         });
 
         DB::statement("DROP INDEX IF EXISTS bookings_confirmed_overlap_idx");
-
-        DB::statement("
-            ALTER TABLE bookings
-            DROP CONSTRAINT IF EXISTS no_overlap_per_resource
-        ");
     }
 };
