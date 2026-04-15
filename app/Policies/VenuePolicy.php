@@ -25,8 +25,8 @@ class VenuePolicy
 
     public function viewBookings(User $user, Venue $venue): bool
     {
-        return $user->hasPermissionTo('bookings.view') ||
-            ($user->hasPermissionTo('my-venue.view') && $venue->managers()->whereUserId($user->id)->exists());
+        return $user->hasPermissionTo('booking.view') ||
+            ($user->hasPermissionTo('my-venue.view') && $venue->managers()->where('users.id', $user->id)->exists());
     }
 
     /**

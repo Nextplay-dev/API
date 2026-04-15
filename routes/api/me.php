@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Booking\MeBookingController;
 use App\Http\Controllers\Auth\MeController;
+use Illuminate\Support\Facades\Route;
 
 Route::controller(MeController::class)
     ->group(function () {

@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\Gate;
 class VenueController extends Controller
 {
     public function index(ListVenuesAction $action): JsonResponse {
-        $activities = $action->handle();
+        $venues = $action->handle();
 
-        return VenueResource::collection($activities)->response();
+        return VenueResource::collection($venues)->response();
     }
 
     public function show(Venue $venue): JsonResponse {

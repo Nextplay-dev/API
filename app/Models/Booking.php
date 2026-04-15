@@ -15,7 +15,6 @@ class Booking extends Model
         'user_id',
         'resource_id',
         'activity_id',
-        'slot_id',
         'start_at',
         'end_at',
         'units',

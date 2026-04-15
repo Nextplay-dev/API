@@ -11,8 +11,8 @@ class ListAvailableSlotDTO
 {
     public function __construct(
         public Activity $activity,
-        public ?Carbon $from,
-        public ?Carbon $to,
+        public Carbon $from,
+        public Carbon $to,
         public Resource $resource
     ) {}
 
@@ -23,8 +23,8 @@ class ListAvailableSlotDTO
 
         return new self(
             activity: $activity,
-            from: Carbon::parse($request->validated('from')),
-            to: Carbon::parse($request->validated('to')),
+            from: $request->validated('from'),
+            to: $request->validated('to'),
             resource: $resource,
         );
     }

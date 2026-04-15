@@ -18,7 +18,9 @@ Route::controller(VenueController::class)
         ->name('venue.index')
         ->middleware('permission:venue.view');
 
-    Route::prefix('/{venue}')->group(function () {
+    Route::prefix('/{venue}')
+        ->scopeBindings()
+        ->group(function () {
         Route::get('/', 'show')
             ->name('venue.show')
             ->middleware('permission:venue.view');

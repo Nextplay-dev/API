@@ -4,29 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Actions\Slot\ListAvailableSlotsAction;
 use App\DTOs\ListAvailableSlotDTO;
+use App\Http\Requests\ListActivityResourceAvailableSlotRequest;
 use App\Models\Activity;
 use App\Models\Resource;
 use App\Models\Venue;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ListActivityResourceAvailableSlotController {
     public function __invoke(
         Venue $venue,
-        Request $request,
         Activity $activity,
         Resource $resource,
+        ListActivityResourceAvailableSlotRequest $request,
         ListAvailableSlotsAction $action,
     ): JsonResponse {
-        $from = Carbon::parse($request->input('from'))->utc();
-        $to = Carbon::parse($request->input('to'))->utc();
+        abort_unless($activity->venue_id === $venue->id, 404);
+        abort_unless($resource->venue_id === $venue->id, 404);
 
         $dto = new ListAvailableSlotDTO(
             activity: $activity,
             resource: $resource,
-            from: $from,
-            to: $to,
+            from: $request->from,
+            to: $request->to,
         );
         return response()->json($action->handle($dto));
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBookingRequest extends FormRequest
@@ -20,5 +21,13 @@ class StoreBookingRequest extends FormRequest
             'end_at' => ['required', 'date', 'after:start_at'],
             'units' => ['integer', 'min:1'],
         ];
+    }
+
+    protected function passedValidation(): void
+    {
+        $this->merge([
+            'start_at' => Carbon::parse($this->input('start_at'))->utc(),
+            'end_at'   => Carbon::parse($this->input('end_at'))->utc(),
+        ]);
     }
 }
