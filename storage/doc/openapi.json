@@ -16,8 +16,7 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT",
-        "description": "Sanctum personal access token. Obtain via POST /v1/auth/login or POST /v1/auth/register."
+        "description": "Sanctum personal access token (opaque token stored in the database). Obtain via POST /v1/auth/login or POST /v1/auth/register."
       }
     },
     "schemas": {
