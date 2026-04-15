@@ -24,7 +24,8 @@ Route::controller(VenueController::class)
             ->middleware('permission:venue.view');
 
         Route::apiResource('activities', VenueActivityController::class)
-            ->middleware('auth:sanctum');
+            ->middleware('auth:sanctum')
+            ->scopeBindings();
 
         Route::get('/activities/{activity}/resources/{resource}/available-slots', ListActivityResourceAvailableSlotController::class)
             ->name('venue.activities.resources.available-slots')
