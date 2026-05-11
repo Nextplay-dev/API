@@ -2,6 +2,7 @@
 
 namespace App\Actions\Venue;
 
+use App\Filters\WeightedVenueSearchFilter;
 use App\Models\Venue;
 use App\Sorts\NearestSort;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -18,6 +19,7 @@ class ListVenuesAction
             ->allowedFilters([
                 AllowedFilter::exact('category_id'),
                 AllowedFilter::partial('name'),
+                AllowedFilter::custom('search', new WeightedVenueSearchFilter()),
             ])
             ->allowedSorts([
                 AllowedSort::custom('nearest', new NearestSort),
