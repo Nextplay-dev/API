@@ -41,4 +41,8 @@ return [
         'redirect' => '/v1/auth/google/callback',
     ],
 
+    'google_maps' => [
+        'key' => env('GOOGLE_MAPS_API_KEY'),
+    ],
+
 ];
