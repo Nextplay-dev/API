@@ -1,10 +1,10 @@
 #!/bin/sh
 
 php artisan storage:link || true
+php artisan migrate --force || true
+php artisan db:seed --force || true
 service supervisor start
 supervisorctl start "worker:*"
 supervisorctl start "schedule"
-php artisan migrate --force || true
-php artisan db:seed --force || true
-php artisan webpush:vapid
-exec php artisan octane:frankenphp
+supervisorctl start "reverb"
+exec php artisan octane:frankenphp --caddyfile=/etc/frankenphp/Caddyfile

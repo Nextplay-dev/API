@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\Booking;
 use App\Models\Resource;
 use App\Services\BookingValidatorService;
+use App\Notifications\BookingConfirmed;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -30,7 +31,7 @@ class CreateBookingAction
             ]);
         }
 
-        return DB::transaction(function () use ($dto) {
+        $booking = DB::transaction(function () use ($dto) {
             return Booking::create([
                 'user_id' => auth()->id(),
                 'resource_id' => $dto->resource_id,
@@ -39,8 +40,12 @@ class CreateBookingAction
                 'end_at' => $dto->end_at,
                 'units' => $dto->units,
                 'status' => 'confirmed',
-                'payment' => true, // Defaulting for now
+                'payment' => true,
             ]);
         });
+
+        auth()->user()->notify(new BookingConfirmed($booking));
+
+        return $booking;
     }
 }

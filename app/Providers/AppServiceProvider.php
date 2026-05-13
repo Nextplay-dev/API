@@ -7,6 +7,7 @@ use App\Services\AvailabilityService;
 use App\Services\BookingValidatorService;
 use App\Services\SlotService;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
