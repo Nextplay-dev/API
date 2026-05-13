@@ -35,6 +35,10 @@ Route::controller(MeController::class)
                 ->middleware('permission:me.view')
                 ->name('me.notifications.read');
 
+            Route::delete('notifications/{notification}', 'destroy')
+                ->middleware('permission:me.view')
+                ->name('me.notifications.destroy');
+
         });
 
     });

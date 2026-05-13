@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\Notification\DeleteUserNotificationAction;
 use App\Actions\Notification\GetUserNotificationsAction;
 use App\Actions\Notification\MarkNotificationAsReadAction;
 use App\Http\Controllers\Controller;
@@ -24,5 +25,12 @@ class MeNotificationController extends Controller
         $notification = $markNotificationAsReadAction->handle($request->user(), $notification);
 
         return response()->json(NotificationResource::make($notification));
+    }
+
+    public function destroy(Request $request, Notification $notification, DeleteUserNotificationAction $deleteUserNotificationAction): JsonResponse
+    {
+        $deleteUserNotificationAction->handle($request->user(), $notification);
+
+        return response()->json(null, 204);
     }
 }
