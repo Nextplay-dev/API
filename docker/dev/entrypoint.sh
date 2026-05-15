@@ -1,3 +1,4 @@
 #!/bin/sh
 
-exec php artisan octane:frankenphp --watch
+service supervisor start &
+exec php artisan octane:frankenphp --watch --caddyfile=/etc/frankenphp/Caddyfile

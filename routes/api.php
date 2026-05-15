@@ -31,6 +31,10 @@ Route::prefix('/v1')->group(function () {
         ->middleware('auth:sanctum')
         ->group(base_path('routes/api/category.php'));
 
+    Route::prefix('locations')
+        ->middleware('auth:sanctum')
+        ->group(base_path('routes/api/location.php'));
+
     Route::prefix('users')
         ->middleware('auth:sanctum')
         ->group(base_path('routes/api/user.php'));
