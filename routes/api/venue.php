@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ListActivityAvailableSlotController;
 use App\Http\Controllers\ListActivityResourceAvailableSlotController;
 use App\Http\Controllers\VenueActivityController;
 use App\Http\Controllers\VenueController;
@@ -16,6 +17,10 @@ Route::controller(VenueController::class)
         ->group(function () {
         Route::get('/', 'show')
             ->name('venue.show')
+            ->middleware('permission:venue.view');
+
+        Route::get('/activities/{activity}/available-slots', ListActivityAvailableSlotController::class)
+            ->name('venue.activities.available-slots')
             ->middleware('permission:venue.view');
 
         Route::get('/activities/{activity}/resources/{resource}/available-slots', ListActivityResourceAvailableSlotController::class)

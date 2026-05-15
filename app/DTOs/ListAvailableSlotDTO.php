@@ -13,13 +13,13 @@ class ListAvailableSlotDTO
         public Activity $activity,
         public Carbon $from,
         public Carbon $to,
-        public Resource $resource
+        public ?Resource $resource = null,
     ) {}
 
     public static function fromRequest(FormRequest $request): self
     {
         $activity = Activity::findOrFail($request->validated('activity_id', null));
-        $resource = Resource::findOrFail($request->validated('resource_id', null));
+        $resource = $request->has('resource_id') ? Resource::findOrFail($request->validated('resource_id', null)) : null;
 
         return new self(
             activity: $activity,

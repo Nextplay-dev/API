@@ -10,7 +10,7 @@ use App\Models\Resource;
 use App\Models\Venue;
 use Illuminate\Http\JsonResponse;
 
-class ListActivityResourceAvailableSlotController {
+class ListActivityAvailableSlotController {
     public function __invoke(
         Venue $venue,
         Activity $activity,
@@ -21,7 +21,6 @@ class ListActivityResourceAvailableSlotController {
 
         $dto = new ListAvailableSlotDTO(
             activity: $activity,
-            resource: $resource,
             from: $request->from,
             to: $request->to,
         );

@@ -15,6 +15,7 @@ class ResourceResource extends JsonResource
             'name' => $this->name,
             'type' => $this->type,
             'capacity' => $this->capacity,
+            'activities' => ActivityResource::collection($this->whenLoaded('activities')),
             'venue' => VenueResource::make($this->whenLoaded('venue')),
         ];
     }

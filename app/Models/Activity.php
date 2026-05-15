@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Activity extends Model
 {
@@ -21,9 +20,10 @@ class Activity extends Model
         'rules_json' => 'array',
     ];
 
-    public function resources(): HasMany
+    public function resources(): BelongsToMany
     {
-        return $this->hasMany(Resource::class, 'venue_id', 'venue_id');
+        return $this->belongsToMany(Resource::class)
+            ->withTimestamps();
     }
 
     public function getRule($key, $default = null)

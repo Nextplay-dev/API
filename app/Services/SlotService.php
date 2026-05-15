@@ -13,7 +13,28 @@ class SlotService
         protected BookingValidatorService $bookingValidatorService
     ) {}
 
-    public function computeAvailableSlots(Resource $resource, Activity $activity, Carbon $from, Carbon $to): array
+    public function computeAvailableSlots(Activity $activity, Carbon $from, Carbon $to): array
+    {
+        $resources = $activity->resources()->get();
+        $slots = [];
+
+        foreach ($resources as $resource) {
+            foreach ($this->computeAvailableSlotsForResource($resource, $activity, $from, $to) as $slot) {
+                $key = $slot['start_at']->timestamp . '_' . $slot['end_at']->timestamp;
+
+                if (!isset($slots[$key])) {
+                    $slots[$key] = $slot;
+                    continue;
+                }
+
+                $slots[$key]['resources_id'] = array_merge($slots[$key]['resources_id'], $slot['resources_id']);
+            }
+        }
+
+        return array_values($slots);
+    }
+
+    public function computeAvailableSlotsForResource(Resource $resource, Activity $activity, Carbon $from, Carbon $to): array
     {
         $ranges = $this->availabilityService->getFreeRanges($resource, $from, $to);
 
@@ -30,7 +51,7 @@ class SlotService
 
                 if ($this->bookingValidatorService->canBook($resource, $activity, $start, $end)) {
                     $slots[] = [
-                        'resource_id' => $resource->id,
+                        'resources_id' => [$resource->id],
                         'start_at' => $start,
                         'end_at' => $end,
                     ];

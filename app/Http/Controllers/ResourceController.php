@@ -18,13 +18,17 @@ class ResourceController extends Controller
     public function index(Venue $venue): JsonResponse
     {
         Gate::authorize("view", $venue);
-        return ResourceResource::collection($venue->resources)->response();
+
+        $resources = $venue->resources()->with('activities')->get();
+
+        return ResourceResource::collection($resources)->response();
     }
 
     public function show(Venue $venue, Resource $resource): JsonResponse
     {
         Gate::authorize("view", $venue);
-        return ResourceResource::make($resource)->response();
+
+        return ResourceResource::make($resource->load('activities'))->response();
     }
 
     public function store(StoreResourceRequest $request, Venue $venue, StoreResourceAction $action): JsonResponse

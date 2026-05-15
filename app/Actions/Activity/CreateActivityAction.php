@@ -10,6 +10,6 @@ class CreateActivityAction
 {
     public function handle(Venue $venue, ActivityDTO $dto): Activity
     {
-        return $venue->activities()->create($dto->toArray());
+        return $venue->activities()->create($dto->toArray())->load('resources');
     }
 }
