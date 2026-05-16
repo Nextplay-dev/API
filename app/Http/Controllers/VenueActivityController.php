@@ -24,6 +24,7 @@ class VenueActivityController extends Controller
         Gate::authorize('viewAny', [Activity::class, $venue]);
 
         $activities = QueryBuilder::for($venue->activities())
+            ->with('resources')
             ->allowedFilters([
                 AllowedFilter::partial('name'),
             ])
@@ -37,7 +38,7 @@ class VenueActivityController extends Controller
     {
         Gate::authorize('view', $activity);
 
-        return ActivityResource::make($activity);
+        return ActivityResource::make($activity->load('resources'));
     }
 
     public function store(StoreActivityRequest $request, Venue $venue, CreateActivityAction $action): JsonResponse
@@ -59,7 +60,7 @@ class VenueActivityController extends Controller
         $dto = ActivityDTO::fromRequest($request);
         $activity = $action->handle($activity, $dto);
 
-        return ActivityResource::make($activity);
+        return ActivityResource::make($activity->load('resources'));
     }
 
     public function destroy(Venue $venue, Activity $activity, DeleteActivityAction $action): JsonResponse

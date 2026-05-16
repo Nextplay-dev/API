@@ -10,6 +10,7 @@ class UpdateActivityAction
     public function handle(Activity $activity, ActivityDTO $dto): Activity
     {
         $activity->update($dto->toArray());
-        return $activity;
+
+        return $activity->refresh()->load('resources');
     }
 }

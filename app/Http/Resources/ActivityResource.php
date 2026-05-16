@@ -15,6 +15,7 @@ class ActivityResource extends JsonResource
             'duration_minutes' => $this->duration_minutes,
             'slot_interval_minutes' => $this->slot_interval_minutes,
             'rules' => $this->rules_json,
+            'resources' => ResourceResource::collection($this->whenLoaded('resources')),
         ];
     }
 }

@@ -19,6 +19,10 @@ Route::controller(MeController::class)
                 ->middleware('permission:me.booking.view')
                 ->name('me.bookings.index');
 
+            Route::get('bookings/{id}', 'show')
+                ->middleware('permission:me.booking.view')
+                ->name('me.bookings.show');
+
         });
 
         Route::get('preffered-categories', [MePreferredCategoriesController::class, 'index'])
