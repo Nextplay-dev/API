@@ -1,5 +1,4 @@
 services:
-
   laravel:
     build:
       context: .
@@ -35,9 +34,26 @@ services:
       - nextplay-postgres:/var/lib/postgresql/data
       - ./docker/dev/sql:/docker-entrypoint-initdb.d:ro
 
+  mailpit:
+    image: axllent/mailpit
+    container_name: nextplay-dev-mailpit
+    restart: unless-stopped
+    networks:
+      - nextplay-dev-back
+    volumes:
+      - mailpit-data:/data
+    ports:
+      - 8025:8025
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
 networks:
   nextplay-dev-back:
     driver: bridge
 
 volumes:
   nextplay-postgres:
+  mailpit-data:
