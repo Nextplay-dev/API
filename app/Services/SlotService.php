@@ -31,6 +31,8 @@ class SlotService
             }
         }
 
+        array_multisort(array_column($slots, 'start_at'), SORT_ASC, $slots);
+
         return array_values($slots);
     }
 

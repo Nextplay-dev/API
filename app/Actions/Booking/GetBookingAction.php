@@ -13,7 +13,7 @@ class GetBookingAction
         $user = $user ?? Auth::user();
 
         return Booking::where('user_id', $user->id)
-            ->with(['resource.venue', 'activity'])
+            ->with(['resource.venue', 'activity', 'guests.user'])
             ->findOrFail($id);
     }
 }

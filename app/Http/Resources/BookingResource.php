@@ -15,6 +15,7 @@ class BookingResource extends JsonResource
             'user' => PublicUserResource::make($this->whenLoaded('user')),
             'resource' => new ResourceResource($this->whenLoaded('resource')),
             'activity' => ActivityResource::make($this->whenLoaded('activity')),
+            'guests' => BookingGuestResource::collection($this->whenLoaded('guests')),
             'start_at' => $this->start_at->toIso8601String(),
             'end_at' => $this->end_at->toIso8601String(),
             'units' => $this->units,

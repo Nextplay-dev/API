@@ -12,7 +12,7 @@ class GetMyBookingsAction
     public function handle(User $user): LengthAwarePaginator
     {
         return QueryBuilder::for($user->bookings())
-            ->with('activity', 'resource.venue')
+            ->with('activity', 'resource.venue', 'guests.user')
             ->allowedFilters([
                 AllowedFilter::scope('upcoming'),
             ])
