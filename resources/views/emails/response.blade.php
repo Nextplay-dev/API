@@ -175,7 +175,7 @@
                             {{ $booking->resource->venue->name ?? 'Venue' }}
                         </div>
                     </div>
-                @elseif($status === 'declined')
+                @elseif($status === 'rejected')
                     <h1>Invitation Declined</h1>
                     <p>You have declined the invitation.<br>If you change your mind, let the organizer know!</p>
                 @else

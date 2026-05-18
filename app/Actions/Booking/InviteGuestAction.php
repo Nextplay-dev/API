@@ -5,6 +5,7 @@ namespace App\Actions\Booking;
 use App\DTOs\InviteGuestDTO;
 use App\Models\Booking;
 use App\Models\BookingGuest;
+use App\Models\User;
 use App\Notifications\InviteGuestNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
@@ -28,17 +29,36 @@ class InviteGuestAction
             }
         }
 
+        if (BookingGuest::where('email', $dto->email)->where('booking_id', $booking->id)->exists()) {
+            throw ValidationException::withMessages([
+                'email' => 'This user has already been invited.',
+            ]);
+        }
+
+        $guestUser = User::where('email', $dto->email)->first();
+
         $token = Str::random(40);
 
         $guest = BookingGuest::create([
+            'user_id' => $guestUser?->id ?? null,
             'booking_id' => $booking->id,
             'email' => $dto->email,
             'token' => $token,
             'status' => 'pending',
         ]);
 
-        Notification::route('mail', $dto->email)
-            ->notify(new InviteGuestNotification($booking, $token));
+        $notification = new InviteGuestNotification($booking, $guest);
+
+        if ($guestUser) {
+            $guestUser->notify($notification);
+        } else {
+            Notification::route('mail', $dto->email)
+                ->notify($notification);
+        }
+
+        $guest->update([
+            'notification_id' => $notification->id,
+        ]);
 
         return $guest;
     }

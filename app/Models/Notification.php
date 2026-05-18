@@ -36,7 +36,13 @@ class Notification extends Model
 
         static::creating(function ($model) {
             if (! $model->id) {
-                $model->id = Str::uuid();
+                $model->id = (string) Str::uuid();
+            }
+        });
+
+        static::deleted(function ($model) {
+            if ($model->notifiable_type === User::class) {
+                event(new \App\Events\NotificationDeleted($model->notifiable_id, $model->id));
             }
         });
     }

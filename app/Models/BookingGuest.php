@@ -13,6 +13,7 @@ class BookingGuest extends Model
         'token',
         'status',
         'user_id',
+        'notification_id',
     ];
 
     public function booking(): BelongsTo
@@ -23,5 +24,10 @@ class BookingGuest extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function notification(): BelongsTo
+    {
+        return $this->belongsTo(Notification::class);
     }
 }
