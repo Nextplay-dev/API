@@ -17,7 +17,7 @@ class BookingController extends Controller
         Gate::authorize('viewBookings', $resource->venue);
 
         $bookings = $resource->bookings()
-            ->with(['activity', 'user'])
+            ->with(['activity', 'user', 'guests.user'])
             ->orderBy('start_at')
             ->get();
 
