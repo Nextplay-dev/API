@@ -5,62 +5,34 @@ namespace App\Http\Controllers\Booking;
 use App\Actions\Booking\JoinBookingAction;
 use App\Actions\Booking\DeclineBookingAction;
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\BookingGuest;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class BookingInvitationController extends Controller
 {
-    public function show(BookingGuest $guest)
+    public function join(Booking $booking, BookingGuest $bookingGuest, JoinBookingAction $joinBookingAction)
     {
-        $guest->load('booking.resource.venue', 'booking.activity');
+        $user = Auth::user();
+        if (!$user->hasPermissionTo('booking.create') || $bookingGuest->user_id != $user->id) {
+            return abort(403);
+        }
 
-        return view('emails.response', [
-            'success' => true,
-            'status' => $guest->status,
-            'guest' => $guest,
-            'booking' => $guest->booking,
-        ]);
+        $bookingGuest = $joinBookingAction->handle($bookingGuest);
+        
+        return response()->json([], 201);
     }
 
-    public function join(Request $request, JoinBookingAction $action)
+    public function decline(Booking $booking, BookingGuest $bookingGuest, DeclineBookingAction $declineBookingAction)
     {
-        $token = $request->query('token');
-        if (!$token) {
-            return view('emails.response', [
-                'success' => false,
-                'message' => 'No token provided.',
-            ]);
+        $user = Auth::user();
+        if (!$user->hasPermissionTo('booking.create') || $bookingGuest->user_id != $user->id) {
+            return abort(403);
         }
 
-        $guest = $action->handle($token);
-        if (!$guest) {
-            return view('emails.response', [
-                'success' => false,
-                'message' => 'Invalid or expired invitation token.',
-            ]);
-        }
-
-        return redirect()->route('bookings.show', $guest);
-    }
-
-    public function decline(Request $request, DeclineBookingAction $action)
-    {
-        $token = $request->query('token');
-        if (!$token) {
-            return view('emails.response', [
-                'success' => false,
-                'message' => 'No token provided.',
-            ]);
-        }
-
-        $guest = $action->handle($token);
-        if (!$guest) {
-            return view('emails.response', [
-                'success' => false,
-                'message' => 'Invalid or expired invitation token.',
-            ]);
-        }
-
-        return redirect()->route('bookings.show', $guest);
+        $bookingGuest = $declineBookingAction->handle($bookingGuest);
+        
+        return response()->json([], 201);
     }
 }

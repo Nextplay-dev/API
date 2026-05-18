@@ -19,6 +19,14 @@ Route::controller(MeController::class)
                 ->middleware('permission:me.booking.view')
                 ->name('me.bookings.index');
 
+            Route::get('joined-bookings', 'joined')
+                ->middleware('permission:me.booking.view')
+                ->name('me.bookings.joined');
+
+            Route::get('joined-bookings/{id}', 'showJoined')
+                ->middleware('permission:me.booking.view')
+                ->name('me.bookings.joined.show');
+
             Route::get('bookings/{id}', 'show')
                 ->middleware('permission:me.booking.view')
                 ->name('me.bookings.show');

@@ -22,6 +22,20 @@ class MeBookingController extends Controller
         return BookingResource::collection($bookings)->response();
     }
 
+    public function joined(\App\Actions\Booking\GetJoinedBookingsAction $getJoinedBookingsAction): JsonResponse
+    {
+        $bookings = $getJoinedBookingsAction->handle(Auth::user());
+
+        return BookingResource::collection($bookings)->response();
+    }
+
+    public function showJoined(int $id, \App\Actions\Booking\GetJoinedBookingAction $getJoinedBookingAction): JsonResponse
+    {
+        $booking = $getJoinedBookingAction->handle($id);
+
+        return (new BookingResource($booking))->response();
+    }
+
     public function show(int $id, GetBookingAction $getBookingAction): JsonResponse
     {
         $booking = $getBookingAction->handle($id);
@@ -32,8 +46,8 @@ class MeBookingController extends Controller
     public function invite(int $id, StoreInviteGuestRequest $request, InviteGuestAction $inviteGuestAction): JsonResponse
     {
         $dto = InviteGuestDTO::fromRequest($request);
-        $guest = $inviteGuestAction->handle($id, $dto);
+        $inviteGuestAction->handle($id, $dto);
 
-        return (new BookingGuestResource($guest))->response();
+        return response()->json([], 201);
     }
 }

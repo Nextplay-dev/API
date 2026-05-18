@@ -2,11 +2,16 @@
 
 namespace App\Notifications;
 
+use App\Http\Resources\BookingResource;
+use App\Http\Resources\NotificationResource;
 use App\Models\Booking;
+use App\Models\BookingGuest;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class InviteGuestNotification extends Notification
 {
@@ -14,19 +19,21 @@ class InviteGuestNotification extends Notification
 
     public function __construct(
         protected Booking $booking,
-        protected string $token
-    ) {}
+        protected BookingGuest $guest,
+    ) {
+        $this->id = (string) Str::uuid();
+    }
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database', 'broadcast'];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
         $venueName = $this->booking->resource->venue->name;
         $activityName = $this->booking->activity->name;
-        $inviterName = Auth::user() ? Auth::user()->name : 'Alex Martin';
+        $inviterName = Auth::user() ? Auth::user()->name : 'Guest';
 
         $dateStr = $this->booking->start_at->format('l, F j, Y');
         $timeStr = $this->booking->start_at->format('g:i A') . ' – ' . $this->booking->end_at->format('g:i A');
@@ -34,8 +41,8 @@ class InviteGuestNotification extends Notification
         $currentPlayers = 1 + $this->booking->guests()->where('status', '!=', 'rejected')->count();
         $capacity = $this->booking->resource ? $this->booking->resource->capacity : 6;
 
-        $acceptUrl = url('/bookings/join?token=' . $this->token);
-        $declineUrl = url('/bookings/decline?token=' . $this->token);
+        $acceptUrl = url('/bookings/join?token=' . $this->guest->token);
+        $declineUrl = url('/bookings/decline?token=' . $this->guest->token);
 
         $categoryIcon = $this->booking->resource?->venue?->category?->icon;
         $categoryColor = $this->booking->resource?->venue?->category?->color ?? '#6564DB';
@@ -65,5 +72,20 @@ class InviteGuestNotification extends Notification
                 'categoryIconUrl' => $categoryIconUrl,
                 'categoryColor' => $categoryColor,
             ]);
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        $notification = $notifiable->notifications()->where('id', $this->id)->first();
+
+        return new BroadcastMessage(NotificationResource::make($notification)->resolve());
+    }
+
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'guestId' => $this->guest->id,
+            'booking' => BookingResource::make($this->booking->load(['resource.venue', 'activity', 'guests', 'user']))->resolve(),
+        ];
     }
 }

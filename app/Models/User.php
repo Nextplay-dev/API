@@ -44,4 +44,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Booking::class);
     }
+
+    public function joinedBookings(): BelongsToMany
+    {
+        return $this->belongsToMany(Booking::class, 'booking_guests', 'user_id', 'booking_id')
+            ->wherePivot('status', 'accepted')
+            ->withTimestamps();
+    }
 }
