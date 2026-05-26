@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Booking;
 
+use App\Actions\Booking\GetJoinedBookingAction;
+use App\Actions\Booking\GetJoinedBookingsAction;
 use App\Actions\Booking\GetMyBookingsAction;
 use App\Actions\Booking\GetBookingAction;
 use App\Actions\Booking\InviteGuestAction;
@@ -25,14 +27,14 @@ class MeBookingController extends Controller
         return BookingResource::collection($bookings)->response();
     }
 
-    public function joined(\App\Actions\Booking\GetJoinedBookingsAction $getJoinedBookingsAction): JsonResponse
+    public function joined(GetJoinedBookingsAction $getJoinedBookingsAction): JsonResponse
     {
         $bookings = $getJoinedBookingsAction->handle(Auth::user());
 
         return BookingResource::collection($bookings)->response();
     }
 
-    public function showJoined(int $id, \App\Actions\Booking\GetJoinedBookingAction $getJoinedBookingAction): JsonResponse
+    public function showJoined(int $id, GetJoinedBookingAction $getJoinedBookingAction): JsonResponse
     {
         $booking = $getJoinedBookingAction->handle($id);
 
