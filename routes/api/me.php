@@ -34,6 +34,10 @@ Route::controller(MeController::class)
             Route::post('bookings/{id}/invite', 'invite')
                 ->middleware('permission:me.booking.view')
                 ->name('me.bookings.invite');
+
+            Route::post('bookings/{id}/scores', 'score')
+                ->middleware('permission:me.booking.view')
+                ->name('me.bookings.score');
         });
 
         Route::get('preffered-categories', [MePreferredCategoriesController::class, 'index'])

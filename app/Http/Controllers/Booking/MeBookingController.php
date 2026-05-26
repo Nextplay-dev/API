@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Booking;
 use App\Actions\Booking\GetMyBookingsAction;
 use App\Actions\Booking\GetBookingAction;
 use App\Actions\Booking\InviteGuestAction;
+use App\Actions\Booking\StoreBookingScoreAction;
 use App\DTOs\InviteGuestDTO;
+use App\DTOs\StoreBookingScoreDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreInviteGuestRequest;
+use App\Http\Requests\StoreBookingScoreRequest;
 use App\Http\Resources\BookingResource;
 use App\Http\Resources\BookingGuestResource;
 use Illuminate\Http\JsonResponse;
@@ -47,6 +50,14 @@ class MeBookingController extends Controller
     {
         $dto = InviteGuestDTO::fromRequest($request);
         $inviteGuestAction->handle($id, $dto);
+
+        return response()->json([], 201);
+    }
+
+    public function score(int $id, StoreBookingScoreRequest $request, StoreBookingScoreAction $storeBookingScoreAction): JsonResponse
+    {
+        $dto = StoreBookingScoreDTO::fromRequest($request);
+        $storeBookingScoreAction->handle($id, $dto);
 
         return response()->json([], 201);
     }
