@@ -20,6 +20,7 @@ class Booking extends Model
         'end_at',
         'units',
         'status',
+        'scoring_notification_id',
     ];
 
     protected $casts = [
@@ -63,5 +64,10 @@ class Booking extends Model
     public function guests(): HasMany
     {
         return $this->hasMany(BookingGuest::class);
+    }
+
+    public function scores(): HasMany
+    {
+        return $this->hasMany(BookingScore::class);
     }
 }

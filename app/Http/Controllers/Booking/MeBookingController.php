@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers\Booking;
 
+use App\Actions\Booking\GetJoinedBookingAction;
+use App\Actions\Booking\GetJoinedBookingsAction;
 use App\Actions\Booking\GetMyBookingsAction;
 use App\Actions\Booking\GetBookingAction;
 use App\Actions\Booking\InviteGuestAction;
+use App\Actions\Booking\StoreBookingScoreAction;
 use App\DTOs\InviteGuestDTO;
+use App\DTOs\StoreBookingScoreDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreInviteGuestRequest;
+use App\Http\Requests\StoreBookingScoreRequest;
 use App\Http\Resources\BookingResource;
 use App\Http\Resources\BookingGuestResource;
 use Illuminate\Http\JsonResponse;
@@ -22,14 +27,14 @@ class MeBookingController extends Controller
         return BookingResource::collection($bookings)->response();
     }
 
-    public function joined(\App\Actions\Booking\GetJoinedBookingsAction $getJoinedBookingsAction): JsonResponse
+    public function joined(GetJoinedBookingsAction $getJoinedBookingsAction): JsonResponse
     {
         $bookings = $getJoinedBookingsAction->handle(Auth::user());
 
         return BookingResource::collection($bookings)->response();
     }
 
-    public function showJoined(int $id, \App\Actions\Booking\GetJoinedBookingAction $getJoinedBookingAction): JsonResponse
+    public function showJoined(int $id, GetJoinedBookingAction $getJoinedBookingAction): JsonResponse
     {
         $booking = $getJoinedBookingAction->handle($id);
 
@@ -47,6 +52,14 @@ class MeBookingController extends Controller
     {
         $dto = InviteGuestDTO::fromRequest($request);
         $inviteGuestAction->handle($id, $dto);
+
+        return response()->json([], 201);
+    }
+
+    public function score(int $id, StoreBookingScoreRequest $request, StoreBookingScoreAction $storeBookingScoreAction): JsonResponse
+    {
+        $dto = StoreBookingScoreDTO::fromRequest($request);
+        $storeBookingScoreAction->handle($id, $dto);
 
         return response()->json([], 201);
     }
