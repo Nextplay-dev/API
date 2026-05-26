@@ -29,13 +29,15 @@ class InviteGuestAction
             }
         }
 
-        if (BookingGuest::where('email', $dto->email)->where('booking_id', $booking->id)->exists()) {
-            throw ValidationException::withMessages([
-                'email' => 'This user has already been invited.',
-            ]);
+        if ($dto->email) {
+            if (BookingGuest::where('email', $dto->email)->where('booking_id', $booking->id)->exists()) {
+                throw ValidationException::withMessages([
+                    'email' => 'This user has already been invited.',
+                ]);
+            }
         }
 
-        $guestUser = User::where('email', $dto->email)->first();
+        $guestUser = $dto->email ? User::where('email', $dto->email)->first() : null;
 
         $token = Str::random(40);
 
@@ -44,21 +46,23 @@ class InviteGuestAction
             'booking_id' => $booking->id,
             'email' => $dto->email,
             'token' => $token,
-            'status' => 'pending',
+            'status' => $dto->email ? 'pending' : 'accepted',
         ]);
 
-        $notification = new InviteGuestNotification($booking, $guest);
+        if ($dto->email) {
+            $notification = new InviteGuestNotification($booking, $guest);
 
-        if ($guestUser) {
-            $guestUser->notify($notification);
-        } else {
-            Notification::route('mail', $dto->email)
-                ->notify($notification);
+            if ($guestUser) {
+                $guestUser->notify($notification);
+                $guest->update([
+                    'notification_id' => $notification->id,
+                ]);
+            } else {
+                Notification::route('mail', $dto->email)
+                    ->notify($notification);
+            }
+
         }
-
-        $guest->update([
-            'notification_id' => $notification->id,
-        ]);
 
         return $guest;
     }
