@@ -6,6 +6,7 @@ use App\Http\Resources\BookingResource;
 use App\Http\Resources\NotificationResource;
 use App\Models\Booking;
 use App\Models\BookingGuest;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -26,7 +27,11 @@ class InviteGuestNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database', 'broadcast'];
+        if ($notifiable instanceof User) {
+            return ['mail', 'database', 'broadcast'];
+        }
+
+        return ['mail'];
     }
 
     public function toMail(object $notifiable): MailMessage

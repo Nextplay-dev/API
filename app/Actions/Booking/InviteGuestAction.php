@@ -54,14 +54,14 @@ class InviteGuestAction
 
             if ($guestUser) {
                 $guestUser->notify($notification);
+                $guest->update([
+                    'notification_id' => $notification->id,
+                ]);
             } else {
                 Notification::route('mail', $dto->email)
                     ->notify($notification);
             }
 
-            $guest->update([
-                'notification_id' => $notification->id,
-            ]);
         }
 
         return $guest;
