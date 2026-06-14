@@ -15,6 +15,7 @@ class RolesAndPermissionsSeeder extends Seeder
         'back-office.administration.categories',
         'back-office.administration.users',
         'back-office.administration.roles',
+        'back-office.administration.bug-reports',
 
         'venue.view',
         'venue.create',
@@ -64,6 +65,11 @@ class RolesAndPermissionsSeeder extends Seeder
 
         'my-venue.view',
         'my-venue.update',
+
+        'bug-report.view',
+        'bug-report.create',
+        'bug-report.update',
+        'bug-report.delete',
     ];
 
     private const ROLE_PERMISSIONS = [
@@ -77,6 +83,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'me.booking.view',
                 'me.update',
                 'booking.create',
+                'bug-report.create',
             ],
             'weight' => 10,
         ],
@@ -98,6 +105,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'tournament.update',
                 'me.view',
                 'me.update',
+                'bug-report.create',
             ],
             'weight' => 50,
         ],
