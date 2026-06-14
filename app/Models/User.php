@@ -20,6 +20,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'bio',
+        'picture_profile_url',
+        'social_provider',
+        'enable_core_notification',
+        'enable_commercial_notification',
     ];
 
     protected $hidden = [
