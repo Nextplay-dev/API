@@ -619,6 +619,122 @@
             "$ref": "#/components/schemas/User"
           }
         }
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "mailbox": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "read": {
+            "type": "boolean"
+          },
+          "read_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BugReport": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "user": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/User"
+              }
+            ],
+            "nullable": true
+          },
+          "message": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "MeStats": {
+        "type": "object",
+        "properties": {
+          "bookings": {
+            "type": "integer"
+          },
+          "joined_bookings": {
+            "type": "integer"
+          },
+          "wins": {
+            "type": "integer"
+          },
+          "win_rate": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "level": {
+            "type": "integer"
+          },
+          "current_xp": {
+            "type": "integer"
+          },
+          "total_xp": {
+            "type": "integer"
+          }
+        }
+      },
+      "LocationAutocompleteItem": {
+        "type": "object",
+        "properties": {
+          "placeId": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "mainText": {
+            "type": "string"
+          },
+          "secondaryText": {
+            "type": "string"
+          }
+        }
+      },
+      "PlaceDetails": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
       }
     },
     "responses": {
@@ -986,6 +1102,88 @@
             "$ref": "#/components/responses/Forbidden"
           }
         }
+      },
+      "put": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "Update current user",
+        "description": "Updates the authenticated user's profile fields and optionally password. Password change is allowed only for non-social accounts.\n\n**Required permission:** `me.update`",
+        "operationId": "meUpdate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 255
+                  },
+                  "bio": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "picture_profile_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": true,
+                    "maxLength": 2048
+                  },
+                  "enable_core_notification": {
+                    "type": "boolean"
+                  },
+                  "enable_commercial_notification": {
+                    "type": "boolean"
+                  },
+                  "current_password": {
+                    "type": "string",
+                    "description": "Required with `password` for non-social accounts"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8
+                  },
+                  "password_confirmation": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
       }
     },
     "/v1/me/bookings": {
@@ -994,7 +1192,7 @@
           "Me"
         ],
         "summary": "List current user's bookings",
-        "description": "Returns a list of bookings belonging to the authenticated user.\n\n**Required permission:** `me.booking.view`",
+        "description": "Returns a paginated list of bookings belonging to the authenticated user.\n\n**Required permission:** `me.booking.view`",
         "operationId": "meBookingsIndex",
         "security": [
           {
@@ -1003,7 +1201,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of bookings",
+            "description": "Paginated bookings",
             "content": {
               "application/json": {
                 "schema": {
@@ -1014,6 +1212,12 @@
                       "items": {
                         "$ref": "#/components/schemas/Booking"
                       }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
                     }
                   }
                 }
@@ -1026,7 +1230,37 @@
           "403": {
             "$ref": "#/components/responses/Forbidden"
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "filter[upcoming]",
+            "in": "query",
+            "required": false,
+            "description": "When truthy, only upcoming bookings are returned",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 20
+            }
+          }
+        ]
       }
     },
     "/v1/venues": {
@@ -4050,6 +4284,1225 @@
           },
           "422": {
             "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/v1/me/picture": {
+      "post": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "Upload profile picture",
+        "description": "Uploads the authenticated user's profile picture and returns a public URL.\n\n**Required permission:** `me.update`",
+        "operationId": "mePictureUpload",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "picture"
+                ],
+                "properties": {
+                  "picture": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Image file up to 10MB"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Picture uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "url"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/v1/me/joined-bookings": {
+      "get": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "List joined bookings",
+        "description": "Returns a paginated list of bookings joined by the authenticated user.\n\n**Required permission:** `me.booking.view`",
+        "operationId": "meBookingsJoined",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "filter[upcoming]",
+            "in": "query",
+            "required": false,
+            "description": "When truthy, only upcoming bookings are returned",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated joined bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Booking"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/v1/me/joined-bookings/{id}": {
+      "get": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "Get a joined booking",
+        "description": "Returns one booking joined by the authenticated user.\n\n**Required permission:** `me.booking.view`",
+        "operationId": "meBookingsJoinedShow",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Booking ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Joined booking",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/me/bookings/{id}": {
+      "get": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "Get a booking",
+        "description": "Returns one booking owned by the authenticated user.\n\n**Required permission:** `me.booking.view`",
+        "operationId": "meBookingsShow",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Booking ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Booking",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/me/bookings/{id}/invite": {
+      "post": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "Invite a guest to a booking",
+        "description": "Creates a guest invitation for one of the authenticated user's bookings.\n\n**Required permission:** `me.booking.view`",
+        "operationId": "meBookingsInvite",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Booking ID"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Invitation created"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/v1/me/bookings/{id}/scores": {
+      "post": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "Submit booking scores",
+        "description": "Submits scores for participants in one of the authenticated user's bookings.\n\n**Required permission:** `me.booking.view`",
+        "operationId": "meBookingsScore",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Booking ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "scores"
+                ],
+                "properties": {
+                  "scores": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "score"
+                      ],
+                      "properties": {
+                        "user_id": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "booking_guest_id": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "score": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Scores stored"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/v1/me/preffered-categories": {
+      "get": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "List preferred categories",
+        "description": "Returns preferred categories for the authenticated user.\n\n**Required permission:** `me.view`",
+        "operationId": "mePreferredCategoriesIndex",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preferred categories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Category"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/v1/me/notifications": {
+      "get": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "List user notifications",
+        "description": "Returns a paginated list of user notifications. Supports mailbox and type filters and sorting.\n\n**Required permission:** `me.view`",
+        "operationId": "meNotificationsIndex",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "filter[mailbox]",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[type]",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "Allowed: `created_at`, `read_at`. Prefix with `-` for descending.",
+            "schema": {
+              "type": "string",
+              "example": "-created_at"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated notifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Notification"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/v1/me/notifications/{notification}/read": {
+      "post": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "Mark a notification as read",
+        "description": "Marks one notification as read for the authenticated user.\n\n**Required permission:** `me.view`",
+        "operationId": "meNotificationsRead",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "notification",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Notification ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated notification",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Notification"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/me/notifications/{notification}": {
+      "delete": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "Delete a notification",
+        "description": "Deletes one notification for the authenticated user.\n\n**Required permission:** `me.view`",
+        "operationId": "meNotificationsDestroy",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "notification",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Notification ID"
+          }
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/me/stats": {
+      "get": {
+        "tags": [
+          "Me"
+        ],
+        "summary": "Get user stats",
+        "description": "Returns booking and XP progression statistics for the authenticated user.\n\n**Required permission:** `me.view`",
+        "operationId": "meStatsIndex",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeStats"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/v1/locations/cities/autocomplete": {
+      "get": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "Autocomplete city names",
+        "description": "Returns city autocomplete suggestions from Google Places.\n\n**Required permission:** `venue.view`",
+        "operationId": "locationCitiesAutocomplete",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "City name query text"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Autocomplete results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LocationAutocompleteItem"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/v1/locations/places/{placeId}": {
+      "get": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "Get place details",
+        "description": "Returns location details for a Google Place ID.\n\n**Required permission:** `venue.view`",
+        "operationId": "locationPlacesShow",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "placeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Google Place ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Place details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PlaceDetails"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/v1/bookings/{booking}/join/{bookingGuest}": {
+      "post": {
+        "tags": [
+          "Bookings"
+        ],
+        "summary": "Join booking invitation",
+        "description": "Accepts an invitation for a booking guest. Caller must own the booking guest and have permission `booking.create`.\n\n**Required permission:** `booking.create`",
+        "operationId": "bookingJoin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Booking ID"
+          },
+          {
+            "name": "bookingGuest",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Booking guest ID"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Invitation accepted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/bookings/{booking}/decline/{bookingGuest}": {
+      "post": {
+        "tags": [
+          "Bookings"
+        ],
+        "summary": "Decline booking invitation",
+        "description": "Declines an invitation for a booking guest. Caller must own the booking guest and have permission `booking.create`.\n\n**Required permission:** `booking.create`",
+        "operationId": "bookingDecline",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "booking",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Booking ID"
+          },
+          {
+            "name": "bookingGuest",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Booking guest ID"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Invitation declined"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/bug-reports": {
+      "get": {
+        "tags": [
+          "Bug Reports"
+        ],
+        "summary": "List bug reports",
+        "description": "Returns a paginated list of bug reports. Supports message filtering and sorting by created date.\n\n**Required permission:** `bug-report.view`",
+        "operationId": "bugReportIndex",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "filter[message]",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Partial match on report message"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "-created_at"
+            },
+            "description": "Sort field. Allowed: `created_at`"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 20
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated bug reports",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BugReport"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Bug Reports"
+        ],
+        "summary": "Create a bug report",
+        "description": "Creates a new bug report for the authenticated user.\n\n**Required permission:** `bug-report.create`",
+        "operationId": "bugReportStore",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "message"
+                ],
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "minLength": 3
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bug report created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BugReport"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/v1/bug-reports/{bugReport}": {
+      "delete": {
+        "tags": [
+          "Bug Reports"
+        ],
+        "summary": "Delete a bug report",
+        "description": "Deletes a bug report.\n\n**Required permission:** `bug-report.delete`",
+        "operationId": "bugReportDestroy",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "bugReport",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Bug report ID"
+          }
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/venues/{venue}/activities/{activity}/available-slots": {
+      "get": {
+        "tags": [
+          "Venue Activities"
+        ],
+        "summary": "List available slots for an activity",
+        "description": "Returns all available booking slots for a specific venue activity within a date range.\n\n**Required permission:** `venue.view`",
+        "operationId": "venueActivityAvailableSlots",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "venue",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Venue ID"
+          },
+          {
+            "name": "activity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Activity ID"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-06-01"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-06-07"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of available time slots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AvailableSlot"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/bookings/join": {
+      "get": {
+        "tags": [
+          "Booking Invitations"
+        ],
+        "summary": "Join a booking by invitation token",
+        "description": "Public endpoint used from invitation emails. Accepts `token` query parameter and redirects to booking guest page.",
+        "operationId": "bookingInvitationTokenJoin",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTML response when token is invalid or missing"
+          },
+          "302": {
+            "description": "Redirect to `/bookings/{guest}` on success"
+          }
+        }
+      }
+    },
+    "/bookings/decline": {
+      "get": {
+        "tags": [
+          "Booking Invitations"
+        ],
+        "summary": "Decline a booking by invitation token",
+        "description": "Public endpoint used from invitation emails. Accepts `token` query parameter and redirects to booking guest page.",
+        "operationId": "bookingInvitationTokenDecline",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTML response when token is invalid or missing"
+          },
+          "302": {
+            "description": "Redirect to `/bookings/{guest}` on success"
+          }
+        }
+      }
+    },
+    "/bookings/{guest}": {
+      "get": {
+        "tags": [
+          "Booking Invitations"
+        ],
+        "summary": "Show invitation booking page",
+        "description": "Public endpoint returning the invitation response page for a booking guest.",
+        "operationId": "bookingInvitationTokenShow",
+        "parameters": [
+          {
+            "name": "guest",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Booking guest ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invitation page rendered"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api-docs": {
+      "get": {
+        "tags": [
+          "Documentation"
+        ],
+        "summary": "Swagger UI page",
+        "description": "Returns the Swagger documentation HTML page.",
+        "operationId": "docsSwaggerUi",
+        "responses": {
+          "200": {
+            "description": "Swagger UI HTML"
+          }
+        }
+      }
+    },
+    "/docs/openapi.json": {
+      "get": {
+        "tags": [
+          "Documentation"
+        ],
+        "summary": "Serve OpenAPI JSON",
+        "description": "Returns the generated OpenAPI specification file from storage.",
+        "operationId": "docsOpenApiJson",
+        "responses": {
+          "200": {
+            "description": "OpenAPI JSON file"
           }
         }
       }
