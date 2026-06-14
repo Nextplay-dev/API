@@ -19,6 +19,8 @@ class StoreUserRequest extends FormRequest
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'roles' => ['nullable', 'array'],
             'roles.*' => ['string', 'exists:roles,name'],
+            'bio' => ['nullable', 'string'],
+            'picture_profile_url' => ['nullable', 'url', 'max:2048'],
         ];
     }
 }

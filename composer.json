@@ -16,8 +16,10 @@
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.25",
         "laravel/tinker": "^2.10.1",
+        "league/flysystem-aws-s3-v3": "^3.0",
         "spatie/laravel-query-builder": "^6.3",
-        "tightenco/ziggy": "^2.4"
+        "tightenco/ziggy": "^2.4",
+        "yaza/laravel-google-drive-storage": "^5.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

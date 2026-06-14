@@ -12,6 +12,7 @@ class PublicUserResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'picture_profile_url' => $this->picture_profile_url,
         ];
     }
 }

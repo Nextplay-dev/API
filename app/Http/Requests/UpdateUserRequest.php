@@ -28,6 +28,8 @@ class UpdateUserRequest extends FormRequest
             'password' => ['sometimes', 'nullable', 'string', 'min:8', 'confirmed'],
             'roles' => ['nullable', 'array'],
             'roles.*' => ['string', 'exists:roles,name'],
+            'bio' => ['sometimes', 'nullable', 'string'],
+            'picture_profile_url' => ['sometimes', 'nullable', 'url', 'max:2048'],
         ];
     }
 }

@@ -12,6 +12,8 @@ readonly class UserDTO
         public ?string $password = null,
         public ?array $roles = null,
         public ?string $originReferrer = null,
+        public ?string $bio = null,
+        public ?string $pictureProfileUrl = null,
     ) {}
 
     public static function fromRequest(FormRequest $request): self
@@ -23,7 +25,9 @@ readonly class UserDTO
             roles: $request->has('roles') ? $request->validated('roles', []) : null,
             originReferrer: $request->header('X-Origin-Referrer') 
                 ?? $request->validated('origin_referrer') 
-                ?? $request->header('referer')
+                ?? $request->header('referer'),
+            bio: $request->validated('bio'),
+            pictureProfileUrl: $request->validated('picture_profile_url')
         );
     }
 
@@ -36,6 +40,14 @@ readonly class UserDTO
 
         if ($this->password) {
             $data['password'] = $this->password;
+        }
+
+        if ($this->bio !== null) {
+            $data['bio'] = $this->bio;
+        }
+
+        if ($this->pictureProfileUrl !== null) {
+            $data['picture_profile_url'] = $this->pictureProfileUrl;
         }
 
         return $data;

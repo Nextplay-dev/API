@@ -28,9 +28,11 @@ class AuthenticateWithGoogleAction
             );
 
             $user = $this->registerAction->handle($userDto);
+            $user->update(['social_provider' => 'google']);
         } else {
             $user->update([
                 'name' => $googleUser->getName() ?? $googleUser->getNickname() ?? 'Player',
+                'social_provider' => $user->social_provider ?? 'google',
             ]);
         }
 
