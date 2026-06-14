@@ -23,6 +23,8 @@ class User extends Authenticatable
         'bio',
         'picture_profile_url',
         'social_provider',
+        'enable_core_notification',
+        'enable_commercial_notification',
     ];
 
     protected $hidden = [

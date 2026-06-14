@@ -19,6 +19,8 @@ class UpdateMeRequest extends FormRequest
             'name' => ['sometimes', 'string', 'max:255'],
             'bio' => ['sometimes', 'nullable', 'string'],
             'picture_profile_url' => ['sometimes', 'nullable', 'url', 'max:2048'],
+            'enable_core_notification' => ['sometimes', 'boolean'],
+            'enable_commercial_notification' => ['sometimes', 'boolean'],
         ];
 
         if ($user && $user->social_provider === null) {

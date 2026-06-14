@@ -16,6 +16,8 @@ class UserResource extends JsonResource
             'bio' => $this->bio,
             'picture_profile_url' => $this->picture_profile_url,
             'social_provider' => $this->social_provider,
+            'enable_core_notification' => (bool) $this->enable_core_notification,
+            'enable_commercial_notification' => (bool) $this->enable_commercial_notification,
             'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),
             'permissions' => $this->when(
                 $this->relationLoaded('roles') || $this->relationLoaded('permissions'),
