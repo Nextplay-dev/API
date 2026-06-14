@@ -15,7 +15,7 @@ class VenueResource extends JsonResource
             "address" => $this->address,
             "media" => $this->media,
             "tournaments_count" => $this->whenCounted('tournaments'),
-            "tournaments" => TournamentResource::collection($this->whenLoaded("tournaments")),
+            "tournaments" => VenueTournamentResource::collection($this->whenLoaded("tournaments")),
             "category_id" => $this->category_id,
             "category" => CategoryResource::make($this->whenLoaded("category")),
             "managers" => $this->when(

@@ -2,19 +2,21 @@
 
 namespace App\Actions;
 
-use App\Models\Tournament;
+use App\Models\VenueTournament;
 use App\Models\User;
 
 class UserCancelBookingTournamentAction
 {
-    public function handle(User $user, Tournament $tournament): void
+    public function handle(User $user, VenueTournament $tournament): void
     {
-        $booking = $tournament
-            ->bookings()
-            ->where('user_id', $user->id)
-            ->first();
+        if ($tournament->booking_id) {
+            $guest = $tournament->booking->guests()
+                ->where('user_id', $user->id)
+                ->first();
 
-        if ($booking)
-            $booking->delete();
+            if ($guest) {
+                $guest->delete();
+            }
+        }
     }
 }

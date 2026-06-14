@@ -2,21 +2,21 @@
 
 namespace App\Actions;
 
-use App\Models\Tournament;
+use App\Models\VenueTournament;
 use App\Models\User;
 
 class UserBookTournamentAction
 {
-    public function handle(User $user, Tournament $tournament): void
+    public function handle(User $user, VenueTournament $tournament): void
     {
-        $tournament->bookings()->firstOrCreate(
-            [
-                'user_id' => $user->id
-            ],
-            [
-                'payment' => false,
-                'user_id' => $user->id
-            ]
-        );
+        if ($tournament->booking_id) {
+            $tournament->booking->guests()->firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'email' => $user->email,
+                    'status' => 'accepted'
+                ]
+            );
+        }
     }
 }

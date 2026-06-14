@@ -10,6 +10,8 @@ class VenueTournament extends Model
         'title',
         'picture_url',
         'description',
+        'booking_id',
+        'spot_count',
     ];
     public function venue(): BelongsTo
     {
@@ -18,5 +20,9 @@ class VenueTournament extends Model
     public function activity(): BelongsTo
     {
         return $this->belongsTo(Activity::class);
+    }
+    public function booking(): BelongsTo
+    {
+        return $this->belongsTo(Booking::class);
     }
 }

@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Tournament;
 
 use App\Actions\UserCancelBookingTournamentAction;
 use App\Http\Controllers\Controller;
-use App\Models\Tournament;
+use App\Models\VenueTournament;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TournamentCancelBookingController extends Controller
 {
-    public function __invoke(Tournament $tournament, Request $request, UserCancelBookingTournamentAction $action): JsonResponse {
+    public function __invoke(VenueTournament $tournament, Request $request, UserCancelBookingTournamentAction $action): JsonResponse {
         $action->handle($request->user(), $tournament);
 
         return response()->json([

@@ -33,11 +33,9 @@ class Venue extends Model
         return $this->belongsTo(Category::class, 'category_id');
     }
 
-    public function tournaments(): BelongsToMany
+    public function tournaments(): HasMany
     {
-        return $this->belongsToMany(Tournament::class)
-            ->withPivot("host")
-            ->withTimestamps();
+        return $this->hasMany(VenueTournament::class);
     }
 
     public function managers(): BelongsToMany

@@ -9,6 +9,8 @@ readonly class VenueTournamentDTO
         public ?string $title = null,
         public ?string $pictureUrl = null,
         public ?string $description = null,
+        public ?int $bookingId = null,
+        public ?int $spotCount = null,
     ) {}
     public static function fromRequest(FormRequest $request, ?int $venueId = null): self
     {
@@ -18,6 +20,8 @@ readonly class VenueTournamentDTO
             title: $request->validated('title'),
             pictureUrl: $request->validated('picture_url'),
             description: $request->validated('description'),
+            bookingId: $request->has('booking_id') ? (int) $request->validated('booking_id') : null,
+            spotCount: $request->has('spot_count') ? (int) $request->validated('spot_count') : null,
         );
     }
     public function toArray(): array
@@ -37,6 +41,12 @@ readonly class VenueTournamentDTO
         }
         if ($this->description !== null) {
             $data['description'] = $this->description;
+        }
+        if ($this->bookingId !== null) {
+            $data['booking_id'] = $this->bookingId;
+        }
+        if ($this->spotCount !== null) {
+            $data['spot_count'] = $this->spotCount;
         }
         return $data;
     }

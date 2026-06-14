@@ -14,6 +14,8 @@ class UpdateVenueTournamentRequest extends FormRequest
             'title' => ['sometimes', 'string', 'max:255'],
             'picture_url' => ['nullable', 'string', 'max:2048'],
             'description' => ['nullable', 'string'],
+            'booking_id' => ['nullable', 'integer', 'exists:bookings,id'],
+            'spot_count' => ['nullable', 'integer', 'min:1'],
         ];
     }
 }
