@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Models\VenueTournament;
 use App\Models\User;
+use Str;
 
 class UserBookTournamentAction
 {
@@ -14,7 +15,8 @@ class UserBookTournamentAction
                 ['user_id' => $user->id],
                 [
                     'email' => $user->email,
-                    'status' => 'accepted'
+                    'status' => 'accepted',
+                    'token' => Str::uuid()->toString()
                 ]
             );
         }

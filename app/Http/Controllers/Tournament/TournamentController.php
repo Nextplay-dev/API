@@ -17,7 +17,7 @@ class TournamentController extends Controller
     }
 
     public function show(VenueTournament $tournament): JsonResponse {
-        $tournament->load(['activity', 'venue', 'booking', 'booking.guests']);
+        $tournament->load(['activity', 'venue', 'booking', 'booking.guests.user']);
 
         return VenueTournamentResource::make($tournament)->response();
     }

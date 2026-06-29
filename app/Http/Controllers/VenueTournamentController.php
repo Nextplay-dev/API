@@ -26,7 +26,7 @@ class VenueTournamentController extends Controller
     }
     public function show(VenueTournament $venueTournament): JsonResponse
     {
-        $venueTournament->load(['activity', 'booking', 'venue']);
+        $venueTournament->load(['activity', 'booking', 'booking.guests.user', 'venue']);
         return VenueTournamentResource::make($venueTournament)->response();
     }
     public function update(UpdateVenueTournamentRequest $request, VenueTournament $venueTournament, UpdateVenueTournamentAction $action): JsonResponse
