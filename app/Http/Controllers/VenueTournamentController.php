@@ -21,18 +21,18 @@ class VenueTournamentController extends Controller
     public function store(StoreVenueTournamentRequest $request, Venue $venue, StoreVenueTournamentAction $action): JsonResponse
     {
         $tournament = $action->handle(VenueTournamentDTO::fromRequest($request, $venue->id));
-        $tournament->load(['activity', 'booking']);
+        $tournament->load(['activity', 'booking', 'venue']);
         return VenueTournamentResource::make($tournament)->response()->setStatusCode(201);
     }
     public function show(VenueTournament $venueTournament): JsonResponse
     {
-        $venueTournament->load(['activity', 'booking']);
+        $venueTournament->load(['activity', 'booking', 'venue']);
         return VenueTournamentResource::make($venueTournament)->response();
     }
     public function update(UpdateVenueTournamentRequest $request, VenueTournament $venueTournament, UpdateVenueTournamentAction $action): JsonResponse
     {
         $tournament = $action->handle($venueTournament, VenueTournamentDTO::fromRequest($request));
-        $tournament->load(['activity', 'booking']);
+        $tournament->load(['activity', 'booking', 'venue']);
         return VenueTournamentResource::make($tournament)->response();
     }
     public function destroy(VenueTournament $venueTournament, DeleteVenueTournamentAction $action): JsonResponse

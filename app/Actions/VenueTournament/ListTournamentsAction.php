@@ -24,6 +24,11 @@ class ListTournamentsAction
                         $q->where('category_id', $value);
                     });
                 }),
+                AllowedFilter::callback('from_date', function ($query, $value) {
+                    $query->whereHas('booking', function ($q) use ($value) {
+                        $q->where('start_at', '>=', $value);
+                    });
+                })
             ])
             ->allowedSorts([
                 AllowedSort::custom('nearest', new TournamentNearestSort),

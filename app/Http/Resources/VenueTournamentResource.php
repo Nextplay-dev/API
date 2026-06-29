@@ -22,6 +22,7 @@ class VenueTournamentResource extends JsonResource
                 : ($this->booking ? $this->booking->guests()->count() : 0),
             'activity' => ActivityResource::make($this->whenLoaded('activity')),
             'booking' => BookingResource::make($this->whenLoaded('booking')),
+            'venue' => VenueResource::make($this->whenLoaded('venue')),
         ];
     }
 }
