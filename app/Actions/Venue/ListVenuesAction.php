@@ -16,7 +16,7 @@ class ListVenuesAction
     public function handle(): LengthAwarePaginator
     {
         return QueryBuilder::for(Venue::class)
-            ->withCount('tournaments')
+            ->withCount('tournaments', 'ongoingTournaments')
             ->allowedFilters([
                 AllowedFilter::exact('category_id'),
                 AllowedFilter::partial('name'),

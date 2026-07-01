@@ -33,11 +33,17 @@ class Venue extends Model
         return $this->belongsTo(Category::class, 'category_id');
     }
 
-    public function tournaments(): BelongsToMany
+    public function tournaments(): HasMany
     {
-        return $this->belongsToMany(Tournament::class)
-            ->withPivot("host")
-            ->withTimestamps();
+        return $this->hasMany(VenueTournament::class);
+    }
+
+    public function ongoingTournaments(): HasMany
+    {
+        return $this->hasMany(VenueTournament::class)
+            ->whereHas('booking', function ($query) {
+                $query->where('start_at', '>=', \Carbon\Carbon::now('UTC'));
+            });
     }
 
     public function managers(): BelongsToMany
