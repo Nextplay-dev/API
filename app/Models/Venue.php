@@ -38,6 +38,14 @@ class Venue extends Model
         return $this->hasMany(VenueTournament::class);
     }
 
+    public function ongoingTournaments(): HasMany
+    {
+        return $this->hasMany(VenueTournament::class)
+            ->whereHas('booking', function ($query) {
+                $query->where('start_at', '>=', \Carbon\Carbon::now('UTC'));
+            });
+    }
+
     public function managers(): BelongsToMany
     {
         return $this->belongsToMany(User::class);

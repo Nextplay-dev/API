@@ -65,6 +65,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'permissions' => [
                 'venue.view',
                 'category.view',
+                'tournament.view',
                 'tournament.book',
                 'tournament.cancel-booking',
                 'me.view',
