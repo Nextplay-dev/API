@@ -19,6 +19,10 @@ Route::controller(MeController::class)
             ->middleware('permission:me.update')
             ->name('me.update');
 
+        Route::delete('/', 'destroy')
+            ->middleware('permission:me.delete')
+            ->name('me.destroy');
+
         Route::post('picture', UploadMePictureController::class)
             ->middleware('permission:me.update')
             ->name('me.picture.upload');

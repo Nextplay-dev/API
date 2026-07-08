@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\Booking\BatchNotifyToScoreBookings;
 use App\Actions\Booking\NotifyToScoreBooking;
+use App\Actions\Booking\StoreBookingScoreAction;
 use App\Models\Activity;
 use App\Models\Booking;
 use App\Models\Category;
@@ -14,6 +15,7 @@ use App\Notifications\ScoreYourBookingNotification;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class BookingScoringNotificationTest extends TestCase
@@ -36,6 +38,7 @@ class BookingScoringNotificationTest extends TestCase
             'name' => 'Venue 1',
             'address' => 'Address 1',
             'category_id' => $category->id,
+            'media' => '',
         ]);
 
         $resource = Resource::query()->create([
@@ -63,12 +66,25 @@ class BookingScoringNotificationTest extends TestCase
             'status' => 'confirmed',
         ]);
 
+        $uuid = (string) Str::uuid();
+        Str::createUuidsUsing(fn () => $uuid);
+
+        \App\Models\Notification::query()->forceCreate([
+            'id' => $uuid,
+            'type' => ScoreYourBookingNotification::class,
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id,
+            'data' => [],
+        ]);
+
         $action = app(NotifyToScoreBooking::class);
         $action->handle($booking);
 
+        Str::createUuidsNormally();
+
         $booking->refresh();
 
-        $this->assertNotNull($booking->scoring_notification_id);
+        $this->assertEquals($uuid, $booking->scoring_notification_id);
 
         Notification::assertSentTo(
             $user,
@@ -95,6 +111,7 @@ class BookingScoringNotificationTest extends TestCase
             'name' => 'Venue 1',
             'address' => 'Address 1',
             'category_id' => $category->id,
+            'media' => '',
         ]);
 
         $resource = Resource::query()->create([
@@ -144,30 +161,50 @@ class BookingScoringNotificationTest extends TestCase
             'status' => 'cancelled',
         ]);
 
+        $notif = \App\Models\Notification::query()->forceCreate([
+            'type' => ScoreYourBookingNotification::class,
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id,
+            'data' => [],
+        ]);
+
         $endedConfirmedHasNotif = Booking::query()->create([
             'payment' => true,
             'user_id' => $user->id,
             'resource_id' => $resource->id,
             'activity_id' => $activity->id,
-            'start_at' => Carbon::now()->subHours(3),
-            'end_at' => Carbon::now()->subHours(2),
+            'start_at' => Carbon::now()->subHours(5),
+            'end_at' => Carbon::now()->subHours(4),
             'units' => 1,
             'status' => 'confirmed',
-            'scoring_notification_id' => 'existing-uuid',
+            'scoring_notification_id' => $notif->id,
+        ]);
+
+        $uuid = (string) Str::uuid();
+        Str::createUuidsUsing(fn () => $uuid);
+
+        \App\Models\Notification::query()->forceCreate([
+            'id' => $uuid,
+            'type' => ScoreYourBookingNotification::class,
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id,
+            'data' => [],
         ]);
 
         $action = app(BatchNotifyToScoreBookings::class);
         $action->handle();
+
+        Str::createUuidsNormally();
 
         $endedConfirmedNoNotif->refresh();
         $notEndedConfirmed->refresh();
         $endedCancelled->refresh();
         $endedConfirmedHasNotif->refresh();
 
-        $this->assertNotNull($endedConfirmedNoNotif->scoring_notification_id);
+        $this->assertEquals($uuid, $endedConfirmedNoNotif->scoring_notification_id);
         $this->assertNull($notEndedConfirmed->scoring_notification_id);
         $this->assertNull($endedCancelled->scoring_notification_id);
-        $this->assertEquals('existing-uuid', $endedConfirmedHasNotif->scoring_notification_id);
+        $this->assertEquals($notif->id, $endedConfirmedHasNotif->scoring_notification_id);
 
         Notification::assertSentTo($user, ScoreYourBookingNotification::class);
     }
@@ -178,7 +215,7 @@ class BookingScoringNotificationTest extends TestCase
 
         \App\Jobs\BatchNotifyToScoreBookingsJob::dispatch();
 
-        \Illuminate\Support\Facades\Queue::assertDispatched(\App\Jobs\BatchNotifyToScoreBookingsJob::class);
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\BatchNotifyToScoreBookingsJob::class);
     }
 
     public function test_bookings_batch_scoring_artisan_command_dispatches_job(): void
@@ -187,7 +224,7 @@ class BookingScoringNotificationTest extends TestCase
 
         $this->artisan('bookings:batch-scoring')->assertExitCode(0);
 
-        \Illuminate\Support\Facades\Queue::assertDispatched(\App\Jobs\BatchNotifyToScoreBookingsJob::class);
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\BatchNotifyToScoreBookingsJob::class);
     }
 
     public function test_storing_booking_score_deletes_scoring_notification(): void
@@ -210,6 +247,7 @@ class BookingScoringNotificationTest extends TestCase
             'name' => 'Venue 1',
             'address' => 'Address 1',
             'category_id' => $category->id,
+            'media' => '',
         ]);
 
         $resource = Resource::query()->create([
@@ -245,14 +283,13 @@ class BookingScoringNotificationTest extends TestCase
             'scoring_notification_id' => $notification->id,
         ]);
 
-        $dto = new \App\DTOs\StoreBookingScoreDTO();
-        $dto->scores = [
+        $dto = new \App\DTOs\StoreBookingScoreDTO([
             [
                 'user_id' => $user->id,
                 'booking_guest_id' => null,
                 'score' => 10,
             ]
-        ];
+        ]);
 
         $action = app(StoreBookingScoreAction::class);
         $action->handle($booking->id, $dto);

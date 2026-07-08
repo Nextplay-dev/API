@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Category;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,7 +15,7 @@ return new class extends Migration
         Schema::rename('activity_user', 'user_venue');
 
         Schema::table('venues', function (Blueprint $table) {
-            $table->renameColumn('activity_category_id', 'category_id');
+            $table->foreignIdFor(Category::class)->nullable()->after('media')->constrained()->nullOnDelete();
         });
 
         Schema::table('tournament_venue', function (Blueprint $table) {
@@ -34,10 +35,6 @@ return new class extends Migration
 
         Schema::table('tournament_venue', function (Blueprint $table) {
             $table->renameColumn('venue_id', 'activity_id');
-        });
-
-        Schema::table('venues', function (Blueprint $table) {
-            $table->renameColumn('category_id', 'activity_category_id');
         });
 
         Schema::rename('user_venue', 'activity_user');

@@ -25,7 +25,7 @@ class UploadMePictureTest extends TestCase
 
         $file = UploadedFile::fake()->image('avatar.jpg');
 
-        $response = $this->postJson('/api/v1/me/picture', [
+        $response = $this->postJson('/v1/me/picture', [
             'picture' => $file,
         ]);
 

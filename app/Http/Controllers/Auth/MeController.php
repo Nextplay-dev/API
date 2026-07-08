@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\Auth\DeleteMeAction;
 use App\Actions\Auth\UpdateMeAction;
 use App\DTOs\UpdateMeDTO;
 use App\Http\Controllers\Controller;
@@ -28,6 +29,13 @@ class MeController extends Controller
         $user->load(['roles.permissions', 'permissions']);
 
         return response()->json(UserResource::make($user));
+    }
+
+    public function destroy(Request $request, DeleteMeAction $action): JsonResponse
+    {
+        $action->handle($request->user());
+
+        return response()->json(null, 204);
     }
 }
 

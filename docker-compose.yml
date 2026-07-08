@@ -5,6 +5,11 @@ services:
       dockerfile: docker/dev/Dockerfile
     container_name: nextplay-dev-laravel
     restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGUSER: api
+      PGPASSWORD: ${DB_PASSWORD}
     volumes:
       - ./:/app
     networks:

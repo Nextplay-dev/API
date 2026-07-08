@@ -27,7 +27,7 @@ class MeUpdateTest extends TestCase
         $user->grantPermission('me.update');
         Sanctum::actingAs($user);
 
-        $response = $this->putJson('/api/v1/me', [
+        $response = $this->putJson('/v1/me', [
             'name' => 'Updated Name',
             'bio' => 'Updated bio information',
             'picture_profile_url' => 'https://example.com/updated.jpg',
@@ -59,7 +59,7 @@ class MeUpdateTest extends TestCase
         $user->grantPermission('me.update');
         Sanctum::actingAs($user);
 
-        $responseWrong = $this->putJson('/api/v1/me', [
+        $responseWrong = $this->putJson('/v1/me', [
             'current_password' => 'wrongpassword',
             'password' => 'newpassword123',
             'password_confirmation' => 'newpassword123',
@@ -68,7 +68,7 @@ class MeUpdateTest extends TestCase
         $responseWrong->assertStatus(422);
         $responseWrong->assertJsonValidationErrors('current_password');
 
-        $responseCorrect = $this->putJson('/api/v1/me', [
+        $responseCorrect = $this->putJson('/v1/me', [
             'current_password' => 'password123',
             'password' => 'newpassword123',
             'password_confirmation' => 'newpassword123',
@@ -91,7 +91,7 @@ class MeUpdateTest extends TestCase
         $user->grantPermission('me.update');
         Sanctum::actingAs($user);
 
-        $response = $this->putJson('/api/v1/me', [
+        $response = $this->putJson('/v1/me', [
             'current_password' => 'password123',
             'password' => 'newpassword123',
             'password_confirmation' => 'newpassword123',

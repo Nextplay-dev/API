@@ -2,11 +2,12 @@ FROM ghcr.io/nextplay-dev/infra:laravel-latest
 
 RUN apt-get update && apt-get install -y \
     nodejs \
-    npm
+    npm \
+    postgresql-client
 
 RUN npm install --save-dev chokidar
 
-RUN install-php-extensions xdebug
+RUN install-php-extensions xdebug gd
 
 RUN echo "xdebug.mode=develop,debug,coverage" >> $PHP_INI_DIR/php.ini
 

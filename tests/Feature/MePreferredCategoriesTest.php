@@ -48,7 +48,7 @@ class MePreferredCategoriesTest extends TestCase
             'name' => 'Primary Venue',
             'address' => 'Primary Address',
             'category_id' => $bookedPrimaryCategory->id,
-            'media' => null,
+            'media' => '',
             'latitude' => null,
             'longitude' => null,
         ]);
@@ -57,7 +57,7 @@ class MePreferredCategoriesTest extends TestCase
             'name' => 'Secondary Venue',
             'address' => 'Secondary Address',
             'category_id' => $bookedSecondaryCategory->id,
-            'media' => null,
+            'media' => '',
             'latitude' => null,
             'longitude' => null,
         ]);
@@ -125,14 +125,14 @@ class MePreferredCategoriesTest extends TestCase
             'status' => 'confirmed',
         ]);
 
-        $response = $this->getJson('/api/v1/me/preffered-categories');
+        $response = $this->getJson('/v1/me/preffered-categories');
 
         $response->assertOk();
-        $response->assertJsonCount(5, 'data');
-        $response->assertJsonPath('data.0.id', $bookedPrimaryCategory->id);
-        $response->assertJsonPath('data.1.id', $bookedSecondaryCategory->id);
+        $response->assertJsonCount(5);
+        $response->assertJsonPath('0.id', $bookedPrimaryCategory->id);
+        $response->assertJsonPath('1.id', $bookedSecondaryCategory->id);
 
-        $returnedIds = collect($response->json('data'))->pluck('id');
+        $returnedIds = collect($response->json())->pluck('id');
 
         $this->assertCount(5, $returnedIds->unique()->all());
         $this->assertTrue($returnedIds->contains($bookedPrimaryCategory->id));
