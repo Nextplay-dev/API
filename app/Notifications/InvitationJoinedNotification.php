@@ -9,6 +9,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
+use NotificationChannels\Expo\ExpoMessage;
 
 class InvitationJoinedNotification extends Notification
 {
@@ -22,7 +23,7 @@ class InvitationJoinedNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', 'expo'];
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage
@@ -30,6 +31,15 @@ class InvitationJoinedNotification extends Notification
         $notification = $notifiable->notifications()->where('id', $this->id)->first();
 
         return new BroadcastMessage(NotificationResource::make($notification)->resolve());
+    }
+
+    public function toExpo($notifiable): ExpoMessage
+    {
+        return ExpoMessage::create('Invitation accepté')
+            ->body('Vous avez rejoint la partie de '.$this->booking->activity->name.' à '.$this->booking->resource->venue->name.'.')
+            ->badge(1)
+            ->priority('high')
+            ->playSound();
     }
 
     public function toArray(object $notifiable): array

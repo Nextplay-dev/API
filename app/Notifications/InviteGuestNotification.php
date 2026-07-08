@@ -13,6 +13,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use NotificationChannels\Expo\ExpoMessage;
 
 class InviteGuestNotification extends Notification
 {
@@ -28,7 +29,7 @@ class InviteGuestNotification extends Notification
     public function via(object $notifiable): array
     {
         if ($notifiable instanceof User) {
-            return ['mail', 'database', 'broadcast'];
+            return ['mail', 'database', 'broadcast', 'expo'];
         }
 
         return ['mail'];
@@ -38,10 +39,10 @@ class InviteGuestNotification extends Notification
     {
         $venueName = $this->booking->resource->venue->name;
         $activityName = $this->booking->activity->name;
-        $inviterName = Auth::user() ? Auth::user()->name : 'Guest';
+        $inviterName = Auth::user() ? Auth::user()->name : 'un ami';
 
-        $dateStr = $this->booking->start_at->format('l, F j, Y');
-        $timeStr = $this->booking->start_at->format('g:i A').' – '.$this->booking->end_at->format('g:i A');
+        $dateStr = $this->booking->start_at->translatedFormat('l d F Y');
+        $timeStr = $this->booking->start_at->format('H:i').' – '.$this->booking->end_at->format('H:i');
 
         $currentPlayers = 1 + $this->booking->guests()->where('status', '!=', 'rejected')->count();
         $capacity = $this->booking->resource ? $this->booking->resource->capacity : 6;
@@ -61,7 +62,7 @@ class InviteGuestNotification extends Notification
         }
 
         return (new MailMessage)
-            ->subject('Invitation to join a booking at '.$venueName)
+            ->subject('Invitation à rejoindre une partie à '.$venueName)
             ->view('emails.invite', [
                 'activityName' => $activityName,
                 'venueName' => $venueName,
@@ -84,6 +85,17 @@ class InviteGuestNotification extends Notification
         $notification = $notifiable->notifications()->where('id', $this->id)->first();
 
         return new BroadcastMessage(NotificationResource::make($notification)->resolve());
+    }
+
+    public function toExpo($notifiable): ExpoMessage
+    {
+        $inviterName = Auth::user() ? Auth::user()->name : 'un ami';
+
+        return ExpoMessage::create('Invitation à une partie')
+            ->body($inviterName.' vous invite à rejoindre une partie de '.$this->booking->activity->name.' à '.$this->booking->resource->venue->name.'.')
+            ->badge(1)
+            ->priority('high')
+            ->playSound();
     }
 
     public function toArray(object $notifiable): array

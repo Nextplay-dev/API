@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -58,5 +59,10 @@ class User extends Authenticatable
     public function notificationTokens(): HasMany
     {
         return $this->hasMany(UserNotificationToken::class);
+    }
+
+    public function routeNotificationForExpo(): Collection
+    {
+        return $this->notificationTokens->pluck('push_token');
     }
 }

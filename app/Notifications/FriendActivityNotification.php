@@ -7,6 +7,7 @@ use App\Models\Booking;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\Expo\ExpoMessage;
 
 class FriendActivityNotification extends Notification
 {
@@ -19,7 +20,7 @@ class FriendActivityNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', 'expo'];
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage
@@ -27,6 +28,15 @@ class FriendActivityNotification extends Notification
         $notification = $notifiable->notifications()->where('id', $this->id)->first();
 
         return new BroadcastMessage(NotificationResource::make($notification)->resolve());
+    }
+
+    public function toExpo($notifiable): ExpoMessage
+    {
+        return ExpoMessage::create('Activité d\'un ami')
+            ->body($this->friendName.' a créé une partie de '.$this->booking->activity->name.' à '.$this->booking->resource->venue->name.'.')
+            ->badge(1)
+            ->priority('high')
+            ->playSound();
     }
 
     public function toArray(object $notifiable): array

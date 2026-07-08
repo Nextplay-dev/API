@@ -8,6 +8,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\Expo\ExpoMessage;
 
 class BookingConfirmed extends Notification
 {
@@ -19,7 +20,7 @@ class BookingConfirmed extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database', 'broadcast'];
+        return ['mail', 'database', 'broadcast', 'expo'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -28,12 +29,12 @@ class BookingConfirmed extends Notification
         $activityName = $this->booking->activity->name;
 
         return (new MailMessage)
-            ->subject('Booking Confirmed - '.$venueName)
-            ->line('Your booking for '.$activityName.' at '.$venueName.' has been confirmed.')
-            ->line('Start: '.$this->booking->start_at->format('M j, Y H:i'))
-            ->line('End: '.$this->booking->end_at->format('M j, Y H:i'))
-            ->action('View Booking', url('/bookings/'.$this->booking->id))
-            ->line('Thank you for using our application!');
+            ->subject('Réservation confirmée - '.$venueName)
+            ->line('Votre réservation pour '.$activityName.' à '.$venueName.' a été confirmée.')
+            ->line('Début : '.$this->booking->start_at->format('d/m/Y H:i'))
+            ->line('Fin : '.$this->booking->end_at->format('d/m/Y H:i'))
+            ->action('Voir la réservation', url('/bookings/'.$this->booking->id))
+            ->line('Merci d\'utiliser notre application !');
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage
@@ -41,6 +42,15 @@ class BookingConfirmed extends Notification
         $notification = $notifiable->notifications()->where('id', $this->id)->first();
 
         return new BroadcastMessage(NotificationResource::make($notification)->resolve());
+    }
+
+    public function toExpo($notifiable): ExpoMessage
+    {
+        return ExpoMessage::create('Réservation confirmée')
+            ->body('Votre réservation pour '.$this->booking->activity->name.' à '.$this->booking->resource->venue->name.' a été confirmée.')
+            ->badge(1)
+            ->priority('high')
+            ->playSound();
     }
 
     public function toArray(object $notifiable): array

@@ -9,6 +9,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
+use NotificationChannels\Expo\ExpoMessage;
 
 class ScoreYourBookingNotification extends Notification
 {
@@ -22,7 +23,7 @@ class ScoreYourBookingNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', 'expo'];
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage
@@ -30,6 +31,15 @@ class ScoreYourBookingNotification extends Notification
         $notification = $notifiable->notifications()->where('id', $this->id)->first();
 
         return new BroadcastMessage(NotificationResource::make($notification)->resolve());
+    }
+
+    public function toExpo($notifiable): ExpoMessage
+    {
+        return ExpoMessage::create('Saisissez le score !')
+            ->body('Votre partie de '.$this->booking->activity->name.' à '.$this->booking->resource->venue->name.' est terminée. Saisissez les scores dès maintenant.')
+            ->badge(1)
+            ->priority('high')
+            ->playSound();
     }
 
     public function toArray(object $notifiable): array

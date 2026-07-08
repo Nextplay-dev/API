@@ -9,6 +9,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
+use NotificationChannels\Expo\ExpoMessage;
 
 class InvitationDeclinedNotification extends Notification
 {
@@ -23,7 +24,7 @@ class InvitationDeclinedNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', 'expo'];
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage
@@ -31,6 +32,15 @@ class InvitationDeclinedNotification extends Notification
         $notification = $notifiable->notifications()->where('id', $this->id)->first();
 
         return new BroadcastMessage(NotificationResource::make($notification)->resolve());
+    }
+
+    public function toExpo($notifiable): ExpoMessage
+    {
+        return ExpoMessage::create('Invitation refusée')
+            ->body($this->guestName.' a refusé votre invitation pour la partie de '.$this->booking->activity->name.'.')
+            ->badge(1)
+            ->priority('high')
+            ->playSound();
     }
 
     public function toArray(object $notifiable): array
