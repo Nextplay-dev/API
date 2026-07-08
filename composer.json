@@ -17,6 +17,7 @@
         "laravel/socialite": "^5.25",
         "laravel/tinker": "^2.10.1",
         "league/flysystem-aws-s3-v3": "^3.0",
+        "socialiteproviders/apple": "^5.10",
         "spatie/laravel-query-builder": "^6.3",
         "tightenco/ziggy": "^2.4",
         "yaza/laravel-google-drive-storage": "^5.0"
