@@ -28,11 +28,11 @@ class BookingConfirmed extends Notification
         $activityName = $this->booking->activity->name;
 
         return (new MailMessage)
-            ->subject('Booking Confirmed - ' . $venueName)
-            ->line('Your booking for ' . $activityName . ' at ' . $venueName . ' has been confirmed.')
-            ->line('Start: ' . $this->booking->start_at->format('M j, Y H:i'))
-            ->line('End: ' . $this->booking->end_at->format('M j, Y H:i'))
-            ->action('View Booking', url('/bookings/' . $this->booking->id))
+            ->subject('Booking Confirmed - '.$venueName)
+            ->line('Your booking for '.$activityName.' at '.$venueName.' has been confirmed.')
+            ->line('Start: '.$this->booking->start_at->format('M j, Y H:i'))
+            ->line('End: '.$this->booking->end_at->format('M j, Y H:i'))
+            ->action('View Booking', url('/bookings/'.$this->booking->id))
             ->line('Thank you for using our application!');
     }
 

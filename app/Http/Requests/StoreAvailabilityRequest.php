@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 use App\Actions\Availability\CheckAvailabilityOverlapAction;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class StoreAvailabilityRequest extends FormRequest
 {
@@ -25,16 +25,18 @@ class StoreAvailabilityRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            if ($validator->errors()->any()) return;
+            if ($validator->errors()->any()) {
+                return;
+            }
 
             $resource = $this->route('resource');
-            
+
             try {
                 app(CheckAvailabilityOverlapAction::class)->handle(
-                    $resource->id, 
+                    $resource->id,
                     $this->validated()
                 );
-            } catch (\Illuminate\Validation\ValidationException $e) {
+            } catch (ValidationException $e) {
                 foreach ($e->errors() as $key => $messages) {
                     foreach ($messages as $message) {
                         $validator->errors()->add($key, $message);

@@ -6,6 +6,8 @@ use App\Events\NotificationDeleted;
 use App\Models\BookingGuest;
 use App\Models\User;
 use App\Notifications\FriendActivityNotification;
+use App\Notifications\InvitationAcceptedNotification;
+use App\Notifications\InvitationJoinedNotification;
 
 class JoinBookingAction
 {
@@ -29,11 +31,11 @@ class JoinBookingAction
             $friendName = $user ? $user->name : ($guest->user ? $guest->user->name : explode('@', $guest->email)[0]);
 
             if ($booking->user) {
-                $booking->user->notify(new \App\Notifications\InvitationAcceptedNotification($booking, $friendName));
+                $booking->user->notify(new InvitationAcceptedNotification($booking, $friendName));
             }
 
             if ($user) {
-                $user->notify(new \App\Notifications\InvitationJoinedNotification($booking));
+                $user->notify(new InvitationJoinedNotification($booking));
             }
 
             $otherGuests = $booking->guests()

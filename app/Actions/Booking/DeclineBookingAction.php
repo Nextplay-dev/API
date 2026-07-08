@@ -5,6 +5,7 @@ namespace App\Actions\Booking;
 use App\Events\NotificationDeleted;
 use App\Models\BookingGuest;
 use App\Models\User;
+use App\Notifications\InvitationDeclinedNotification;
 
 class DeclineBookingAction
 {
@@ -28,7 +29,7 @@ class DeclineBookingAction
             $friendName = $user ? $user->name : ($guest->user ? $guest->user->name : explode('@', $guest->email)[0]);
 
             if ($booking->user) {
-                $booking->user->notify(new \App\Notifications\InvitationDeclinedNotification($booking, $friendName));
+                $booking->user->notify(new InvitationDeclinedNotification($booking, $friendName));
             }
         }
 

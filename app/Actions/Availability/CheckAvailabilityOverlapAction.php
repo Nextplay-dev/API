@@ -15,7 +15,7 @@ class CheckAvailabilityOverlapAction
 
         $overlap = Availability::where('resource_id', $resourceId)
             ->where('day_of_week', $dayOfWeek)
-            ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
             ->where(function ($query) use ($startTime, $endTime) {
                 $query->where('start_time', '<', $endTime)
                     ->where('end_time', '>', $startTime);

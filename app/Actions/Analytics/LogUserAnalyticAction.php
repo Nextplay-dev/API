@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Action to log user analytics with optional metadata and attached models.
  */
@@ -13,12 +14,8 @@ class LogUserAnalyticAction
 {
     /**
      * Create a new analytic entry.
-     * 
-     * @param User $user
-     * @param string $action
-     * @param array $metadata
-     * @param array<Model> $attachedModels
-     * @return UserAnalytic
+     *
+     * @param  array<Model>  $attachedModels
      */
     public function handle(User $user, string $action, array $metadata = [], array $attachedModels = []): UserAnalytic
     {

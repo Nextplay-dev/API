@@ -5,16 +5,22 @@ namespace Tests\Feature;
 use App\Actions\Booking\BatchNotifyToScoreBookings;
 use App\Actions\Booking\NotifyToScoreBooking;
 use App\Actions\Booking\StoreBookingScoreAction;
+use App\DTOs\StoreBookingScoreDTO;
+use App\Events\NotificationDeleted;
+use App\Jobs\BatchNotifyToScoreBookingsJob;
 use App\Models\Activity;
 use App\Models\Booking;
 use App\Models\Category;
 use App\Models\Resource;
 use App\Models\User;
 use App\Models\Venue;
+use App\Notifications\BookingScoredNotification;
 use App\Notifications\ScoreYourBookingNotification;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -211,26 +217,26 @@ class BookingScoringNotificationTest extends TestCase
 
     public function test_batch_notify_to_score_bookings_job_dispatches_successfully(): void
     {
-        \Illuminate\Support\Facades\Queue::fake();
+        Queue::fake();
 
-        \App\Jobs\BatchNotifyToScoreBookingsJob::dispatch();
+        BatchNotifyToScoreBookingsJob::dispatch();
 
-        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\BatchNotifyToScoreBookingsJob::class);
+        Queue::assertPushed(BatchNotifyToScoreBookingsJob::class);
     }
 
     public function test_bookings_batch_scoring_artisan_command_dispatches_job(): void
     {
-        \Illuminate\Support\Facades\Queue::fake();
+        Queue::fake();
 
         $this->artisan('bookings:batch-scoring')->assertExitCode(0);
 
-        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\BatchNotifyToScoreBookingsJob::class);
+        Queue::assertPushed(BatchNotifyToScoreBookingsJob::class);
     }
 
     public function test_storing_booking_score_deletes_scoring_notification(): void
     {
-        \Illuminate\Support\Facades\Event::fake([
-            \App\Events\NotificationDeleted::class
+        Event::fake([
+            NotificationDeleted::class,
         ]);
         Notification::fake();
 
@@ -283,12 +289,12 @@ class BookingScoringNotificationTest extends TestCase
             'scoring_notification_id' => $notification->id,
         ]);
 
-        $dto = new \App\DTOs\StoreBookingScoreDTO([
+        $dto = new StoreBookingScoreDTO([
             [
                 'user_id' => $user->id,
                 'booking_guest_id' => null,
                 'score' => 10,
-            ]
+            ],
         ]);
 
         $action = app(StoreBookingScoreAction::class);
@@ -299,7 +305,7 @@ class BookingScoringNotificationTest extends TestCase
         $this->assertNull($booking->scoring_notification_id);
         $this->assertDatabaseMissing('notifications', ['id' => $notification->id]);
 
-        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\NotificationDeleted::class);
-        Notification::assertSentTo($user, \App\Notifications\BookingScoredNotification::class);
+        Event::assertDispatched(NotificationDeleted::class);
+        Notification::assertSentTo($user, BookingScoredNotification::class);
     }
 }

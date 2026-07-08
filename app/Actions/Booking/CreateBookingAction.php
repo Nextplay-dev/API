@@ -6,9 +6,8 @@ use App\DTOs\CreateBookingDTO;
 use App\Models\Activity;
 use App\Models\Booking;
 use App\Models\Resource;
-use App\Services\BookingValidatorService;
 use App\Notifications\BookingConfirmed;
-use Carbon\Carbon;
+use App\Services\BookingValidatorService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -23,9 +22,9 @@ class CreateBookingAction
         $resource = Resource::findOrFail($dto->resource_id);
         $activity = Activity::findOrFail($dto->activity_id);
 
-        abort_unless($resource->venue_id === $activity->venue_id, 422, "Mismatched resources and activities");
+        abort_unless($resource->venue_id === $activity->venue_id, 422, 'Mismatched resources and activities');
 
-        if (!$this->bookingValidatorService->canBook($resource, $activity, $dto->start_at, $dto->end_at, $dto->units)) {
+        if (! $this->bookingValidatorService->canBook($resource, $activity, $dto->start_at, $dto->end_at, $dto->units)) {
             throw ValidationException::withMessages([
                 'booking' => 'The selected slot is no longer available or overlaps with an existing booking.',
             ]);

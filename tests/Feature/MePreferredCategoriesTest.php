@@ -38,7 +38,7 @@ class MePreferredCategoriesTest extends TestCase
 
         $otherCategories = collect(range(1, 4))->map(function (int $index) {
             return Category::query()->create([
-                'name' => 'Random Category ' . $index,
+                'name' => 'Random Category '.$index,
                 'icon' => 'Ionicons/trophy-outline',
                 'color' => '#333333',
             ]);

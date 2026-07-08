@@ -28,7 +28,7 @@ class ListTournamentsAction
                     $query->whereHas('booking', function ($q) use ($value) {
                         $q->where('start_at', '>=', $value);
                     });
-                })
+                }),
             ])
             ->allowedSorts([
                 AllowedSort::custom('nearest', new TournamentNearestSort),

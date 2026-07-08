@@ -1,7 +1,10 @@
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 class VenueTournament extends Model
 {
     protected $fillable = [
@@ -13,14 +16,17 @@ class VenueTournament extends Model
         'booking_id',
         'spot_count',
     ];
+
     public function venue(): BelongsTo
     {
         return $this->belongsTo(Venue::class);
     }
+
     public function activity(): BelongsTo
     {
         return $this->belongsTo(Activity::class);
     }
+
     public function booking(): BelongsTo
     {
         return $this->belongsTo(Booking::class);

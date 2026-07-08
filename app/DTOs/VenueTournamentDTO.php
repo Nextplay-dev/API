@@ -1,6 +1,9 @@
 <?php
+
 namespace App\DTOs;
+
 use Illuminate\Foundation\Http\FormRequest;
+
 readonly class VenueTournamentDTO
 {
     public function __construct(
@@ -12,6 +15,7 @@ readonly class VenueTournamentDTO
         public ?int $bookingId = null,
         public ?int $spotCount = null,
     ) {}
+
     public static function fromRequest(FormRequest $request, ?int $venueId = null): self
     {
         return new self(
@@ -24,6 +28,7 @@ readonly class VenueTournamentDTO
             spotCount: $request->has('spot_count') ? (int) $request->validated('spot_count') : null,
         );
     }
+
     public function toArray(): array
     {
         $data = [];
@@ -48,6 +53,7 @@ readonly class VenueTournamentDTO
         if ($this->spotCount !== null) {
             $data['spot_count'] = $this->spotCount;
         }
+
         return $data;
     }
 }

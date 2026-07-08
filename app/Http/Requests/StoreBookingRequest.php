@@ -27,7 +27,7 @@ class StoreBookingRequest extends FormRequest
     {
         $this->merge([
             'start_at' => Carbon::parse($this->input('start_at'))->utc(),
-            'end_at'   => Carbon::parse($this->input('end_at'))->utc(),
+            'end_at' => Carbon::parse($this->input('end_at'))->utc(),
         ]);
     }
 }

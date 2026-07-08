@@ -41,13 +41,13 @@ class InviteGuestNotification extends Notification
         $inviterName = Auth::user() ? Auth::user()->name : 'Guest';
 
         $dateStr = $this->booking->start_at->format('l, F j, Y');
-        $timeStr = $this->booking->start_at->format('g:i A') . ' – ' . $this->booking->end_at->format('g:i A');
+        $timeStr = $this->booking->start_at->format('g:i A').' – '.$this->booking->end_at->format('g:i A');
 
         $currentPlayers = 1 + $this->booking->guests()->where('status', '!=', 'rejected')->count();
         $capacity = $this->booking->resource ? $this->booking->resource->capacity : 6;
 
-        $acceptUrl = url('/bookings/join?token=' . $this->guest->token);
-        $declineUrl = url('/bookings/decline?token=' . $this->guest->token);
+        $acceptUrl = url('/bookings/join?token='.$this->guest->token);
+        $declineUrl = url('/bookings/decline?token='.$this->guest->token);
 
         $categoryIcon = $this->booking->resource?->venue?->category?->icon;
         $categoryColor = $this->booking->resource?->venue?->category?->color ?? '#6564DB';
@@ -61,7 +61,7 @@ class InviteGuestNotification extends Notification
         }
 
         return (new MailMessage)
-            ->subject('Invitation to join a booking at ' . $venueName)
+            ->subject('Invitation to join a booking at '.$venueName)
             ->view('emails.invite', [
                 'activityName' => $activityName,
                 'venueName' => $venueName,

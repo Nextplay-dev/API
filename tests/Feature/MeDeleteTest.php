@@ -54,12 +54,12 @@ class MeDeleteTest extends TestCase
         $user->refresh();
 
         $this->assertEquals('Deleted User', $user->name);
-        $this->assertEquals('deleted_' . $user->id . '@nextplay.app', $user->email);
+        $this->assertEquals('deleted_'.$user->id.'@nextplay.app', $user->email);
         $this->assertNull($user->bio);
         $this->assertNull($user->picture_profile_url);
         $this->assertNull($user->social_provider);
-        $this->assertFalse((bool)$user->enable_core_notification);
-        $this->assertFalse((bool)$user->enable_commercial_notification);
+        $this->assertFalse((bool) $user->enable_core_notification);
+        $this->assertFalse((bool) $user->enable_commercial_notification);
         $this->assertNull($user->email_verified_at);
 
         $this->assertCount(0, $user->roles);

@@ -1,9 +1,11 @@
 <?php
+
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ExceptionController;
 use App\Http\Controllers\ResourceController;
 use Illuminate\Support\Facades\Route;
+
 Route::prefix('/v1')->group(function () {
     Route::prefix('auth')
         ->group(base_path('routes/api/auth.php'));

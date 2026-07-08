@@ -10,11 +10,12 @@ use Illuminate\Http\Request;
 
 class TournamentCancelBookingController extends Controller
 {
-    public function __invoke(VenueTournament $tournament, Request $request, UserCancelBookingTournamentAction $action): JsonResponse {
+    public function __invoke(VenueTournament $tournament, Request $request, UserCancelBookingTournamentAction $action): JsonResponse
+    {
         $action->handle($request->user(), $tournament);
 
         return response()->json([
-            'message' => 'Tournament booking cancelled successfully'
+            'message' => 'Tournament booking cancelled successfully',
         ]);
     }
 }

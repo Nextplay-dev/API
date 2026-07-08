@@ -20,9 +20,9 @@ class GetMeStatsAction
                         ->where('status', 'accepted');
                 });
         })
-        ->whereHas('scores')
-        ->with('scores')
-        ->get();
+            ->whereHas('scores')
+            ->with('scores')
+            ->get();
 
         $wins = 0;
         $totalXp = 0;

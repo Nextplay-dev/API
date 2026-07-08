@@ -81,6 +81,7 @@ class AvailabilityService
 
                 if ($period->end_at <= $range['start'] || $period->start_at >= $range['end']) {
                     $newRanges[] = $range;
+
                     continue;
                 }
 
@@ -104,5 +105,4 @@ class AvailabilityService
 
         return $ranges;
     }
-
 }

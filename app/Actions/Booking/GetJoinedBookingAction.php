@@ -16,7 +16,7 @@ class GetJoinedBookingAction
             $query->where('user_id', $user->id)
                 ->where('status', 'accepted');
         })
-        ->with(['resource.venue', 'activity', 'guests.user', 'user', 'scores'])
-        ->findOrFail($id);
+            ->with(['resource.venue', 'activity', 'guests.user', 'user', 'scores'])
+            ->findOrFail($id);
     }
 }

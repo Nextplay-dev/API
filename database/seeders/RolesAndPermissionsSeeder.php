@@ -1,8 +1,11 @@
 <?php
+
 namespace Database\Seeders;
+
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
+
 class RolesAndPermissionsSeeder extends Seeder
 {
     private const PERMISSIONS = [
@@ -61,6 +64,7 @@ class RolesAndPermissionsSeeder extends Seeder
         'venue-tournament.update',
         'venue-tournament.delete',
     ];
+
     private const ROLE_PERMISSIONS = [
         'customer' => [
             'permissions' => [
@@ -110,6 +114,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'weight' => 100,
         ],
     ];
+
     public function run(): void
     {
         $permissions = collect(self::PERMISSIONS)->map(
@@ -120,7 +125,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 ['name' => $roleName],
                 [
                     'is_locked' => true,
-                    'weight' => $config['weight']
+                    'weight' => $config['weight'],
                 ]
             );
             if ($role->weight !== $config['weight']) {
@@ -128,6 +133,7 @@ class RolesAndPermissionsSeeder extends Seeder
             }
             if ($config['permissions'] === '*') {
                 $role->permissions()->sync($permissions->pluck('id'));
+
                 continue;
             }
             $permissionIds = $permissions

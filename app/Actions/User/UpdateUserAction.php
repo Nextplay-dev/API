@@ -25,11 +25,11 @@ class UpdateUserAction
 
             if ($dto->roles !== null && Auth::user()->id !== $user->id) {
                 $authUser = Auth::user();
-                
+
                 $protectedRoles = $user->roles()
                     ->with('permissions')
                     ->get()
-                    ->filter(fn (Role $role) => !$this->filterAllowedRolesAction->isRoleGiveable($authUser, $role))
+                    ->filter(fn (Role $role) => ! $this->filterAllowedRolesAction->isRoleGiveable($authUser, $role))
                     ->pluck('id')
                     ->toArray();
 
@@ -37,7 +37,7 @@ class UpdateUserAction
                     $authUser,
                     $dto->roles
                 );
-                
+
                 $allowedRolesFromRequestIds = Role::whereIn('name', $rolesToAssignNames)->pluck('id')->toArray();
 
                 $user->roles()->sync(array_unique(array_merge($protectedRoles, $allowedRolesFromRequestIds)));

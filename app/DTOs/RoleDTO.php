@@ -1,9 +1,9 @@
 <?php
- 
+
 namespace App\DTOs;
- 
+
 use Illuminate\Foundation\Http\FormRequest;
- 
+
 readonly class RoleDTO
 {
     public function __construct(
@@ -11,7 +11,7 @@ readonly class RoleDTO
         public ?array $permissions = null,
         public int $weight = 0
     ) {}
- 
+
     public static function fromRequest(FormRequest $request): self
     {
         return new self(
@@ -20,7 +20,7 @@ readonly class RoleDTO
             weight: $request->validated('weight', 0)
         );
     }
- 
+
     public function toArray(): array
     {
         return [

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use App\Actions\Auth\AuthenticateWithAppleAction;
+use App\Http\Controllers\Controller;
 use App\Services\AppleTokenService;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
@@ -13,7 +13,7 @@ class AppleAuthController extends Controller
     public function redirect(Request $request, AppleTokenService $appleTokenService)
     {
         $redirectTo = $request->get('redirect_to', 'exp://');
-        if (!str_starts_with($redirectTo, 'exp://') && !in_array($redirectTo, config('auth.oauth.redirect_urls'))) {
+        if (! str_starts_with($redirectTo, 'exp://') && ! in_array($redirectTo, config('auth.oauth.redirect_urls'))) {
             return abort(400, 'Invalid redirect url');
         }
 
@@ -55,15 +55,15 @@ class AppleAuthController extends Controller
 
             $appleUser = $driver->user();
         } catch (\Exception $e) {
-            return redirect()->away($redirectTo . (str_contains($redirectTo, '?') ? '&' : '?') . 'error=apple_auth_failed');
+            return redirect()->away($redirectTo.(str_contains($redirectTo, '?') ? '&' : '?').'error=apple_auth_failed');
         }
 
         try {
             $token = $action->handle($appleUser, $originReferrer);
         } catch (\Exception $e) {
-            return redirect()->away($redirectTo . (str_contains($redirectTo, '?') ? '&' : '?') . 'error=auth_internal_error');
+            return redirect()->away($redirectTo.(str_contains($redirectTo, '?') ? '&' : '?').'error=auth_internal_error');
         }
 
-        return redirect()->away($redirectTo . (str_contains($redirectTo, '?') ? '&' : '?') . 'token=' . $token);
+        return redirect()->away($redirectTo.(str_contains($redirectTo, '?') ? '&' : '?').'token='.$token);
     }
 }

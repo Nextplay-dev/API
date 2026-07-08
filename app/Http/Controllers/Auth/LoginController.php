@@ -17,7 +17,7 @@ class LoginController extends Controller
         if ($user && $user->social_provider) {
             return response()->json([
                 'social_provider' => $user->social_provider,
-                'message' => 'Please use social login to log in'
+                'message' => 'Please use social login to log in',
             ], 403);
         }
 

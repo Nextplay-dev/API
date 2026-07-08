@@ -18,6 +18,7 @@ class AvailabilityController extends Controller
     public function index(Resource $resource): JsonResponse
     {
         Gate::authorize('view', $resource->venue);
+
         return AvailabilityResource::collection($resource->availabilities)->response();
     }
 

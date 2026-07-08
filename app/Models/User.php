@@ -3,13 +3,11 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasRolesAndPermissions;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -55,5 +53,10 @@ class User extends Authenticatable
         return $this->belongsToMany(Booking::class, 'booking_guests', 'user_id', 'booking_id')
             ->wherePivot('status', 'accepted')
             ->withTimestamps();
+    }
+
+    public function notificationTokens(): HasMany
+    {
+        return $this->hasMany(UserNotificationToken::class);
     }
 }

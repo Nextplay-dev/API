@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Booking;
 
+use App\Actions\Booking\DeclineBookingAction;
 use App\Actions\Booking\GetBookingGuestAction;
 use App\Actions\Booking\JoinBookingAction;
-use App\Actions\Booking\DeclineBookingAction;
 use App\Http\Controllers\Controller;
 use App\Models\BookingGuest;
 use Illuminate\Http\Request;
@@ -26,7 +26,7 @@ class BookingInvitationTokenController extends Controller
     public function join(Request $request, GetBookingGuestAction $getBookingGuestAction, JoinBookingAction $joinBookingAction)
     {
         $token = $request->query('token');
-        if (!$token) {
+        if (! $token) {
             return view('emails.response', [
                 'success' => false,
                 'message' => 'No token provided.',
@@ -34,7 +34,7 @@ class BookingInvitationTokenController extends Controller
         }
 
         $guest = $getBookingGuestAction->handle($token);
-        if (!$guest) {
+        if (! $guest) {
             return view('emails.response', [
                 'success' => false,
                 'message' => 'Invalid or expired invitation token.',
@@ -48,7 +48,7 @@ class BookingInvitationTokenController extends Controller
     public function decline(Request $request, GetBookingGuestAction $getBookingGuestAction, DeclineBookingAction $declineBookingAction)
     {
         $token = $request->query('token');
-        if (!$token) {
+        if (! $token) {
             return view('emails.response', [
                 'success' => false,
                 'message' => 'No token provided.',
@@ -56,7 +56,7 @@ class BookingInvitationTokenController extends Controller
         }
 
         $guest = $getBookingGuestAction->handle($token);
-        if (!$guest) {
+        if (! $guest) {
             return view('emails.response', [
                 'success' => false,
                 'message' => 'Invalid or expired invitation token.',

@@ -13,6 +13,7 @@ class BookingInvitationPolicy
     public function join(User $user, BookingGuest $guest): bool
     {
         dd($user, $guest);
+
         return $user->hasPermissionTo('booking.create') && $guest->user_id == $user->id;
     }
 

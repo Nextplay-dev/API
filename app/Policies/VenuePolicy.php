@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\Venue;
 use App\Models\User;
+use App\Models\Venue;
 
 class VenuePolicy
 {

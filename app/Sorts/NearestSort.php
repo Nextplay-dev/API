@@ -12,7 +12,7 @@ class NearestSort implements Sort
         $latitude = request('latitude');
         $longitude = request('longitude');
 
-        if (!$latitude || !$longitude) {
+        if (! $latitude || ! $longitude) {
             return $query;
         }
 
@@ -31,7 +31,7 @@ class NearestSort implements Sort
         $paramsSecond = [$latitude, $latitude, $longitude, $radiusMeters, $latitude, $latitude, $longitude];
 
         return $query
-            ->orderByRaw('CASE WHEN ' . $expr . ' <= ? THEN 0 ELSE 1 END ASC', $paramsFirst)
-            ->orderByRaw('CASE WHEN ' . $expr . ' <= ? THEN 0 ELSE ' . $expr . ' END ' . ($descending ? 'DESC' : 'ASC'), $paramsSecond);
+            ->orderByRaw('CASE WHEN '.$expr.' <= ? THEN 0 ELSE 1 END ASC', $paramsFirst)
+            ->orderByRaw('CASE WHEN '.$expr.' <= ? THEN 0 ELSE '.$expr.' END '.($descending ? 'DESC' : 'ASC'), $paramsSecond);
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Resource;
 use App\Models\Activity;
+use App\Models\Resource;
 use Carbon\Carbon;
 
 class SlotService
@@ -20,10 +20,11 @@ class SlotService
 
         foreach ($resources as $resource) {
             foreach ($this->computeAvailableSlotsForResource($resource, $activity, $from, $to) as $slot) {
-                $key = $slot['start_at']->timestamp . '_' . $slot['end_at']->timestamp;
+                $key = $slot['start_at']->timestamp.'_'.$slot['end_at']->timestamp;
 
-                if (!isset($slots[$key])) {
+                if (! isset($slots[$key])) {
                     $slots[$key] = $slot;
+
                     continue;
                 }
 

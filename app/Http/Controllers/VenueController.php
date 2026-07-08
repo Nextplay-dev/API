@@ -15,13 +15,15 @@ use Illuminate\Support\Facades\Gate;
 
 class VenueController extends Controller
 {
-    public function index(ListVenuesAction $action): JsonResponse {
+    public function index(ListVenuesAction $action): JsonResponse
+    {
         $venues = $action->handle();
 
         return VenueResource::collection($venues)->response();
     }
 
-    public function show(Venue $venue): JsonResponse {
+    public function show(Venue $venue): JsonResponse
+    {
         Gate::authorize('view', $venue);
         $venue->load(['tournaments', 'tournaments.booking', 'ongoingTournaments', 'ongoingTournaments.booking', 'category', 'managers', 'resources', 'activities']);
 

@@ -13,7 +13,8 @@ use Illuminate\Http\Request;
 
 class MeController extends Controller
 {
-    public function index(Request $request): JsonResponse {
+    public function index(Request $request): JsonResponse
+    {
         $request->user()->load(['roles.permissions', 'permissions']);
 
         return response()->json(UserResource::make($request->user()));
@@ -38,4 +39,3 @@ class MeController extends Controller
         return response()->json(null, 204);
     }
 }
-

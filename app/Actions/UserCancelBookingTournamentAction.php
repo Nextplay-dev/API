@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\VenueTournament;
 use App\Models\User;
+use App\Models\VenueTournament;
 
 class UserCancelBookingTournamentAction
 {

@@ -5,7 +5,6 @@ namespace App\Actions\User;
 use App\Actions\Role\FilterAllowedRolesAction;
 use App\DTOs\UserDTO;
 use App\Models\User;
-use App\Models\Role;
 use Illuminate\Support\Facades\DB;
 
 class StoreUserAction
@@ -25,7 +24,7 @@ class StoreUserAction
                     $dto->roles
                 );
 
-                if (!empty($rolesToAssign)) {
+                if (! empty($rolesToAssign)) {
                     $user->assignRole(...$rolesToAssign);
                 }
             }

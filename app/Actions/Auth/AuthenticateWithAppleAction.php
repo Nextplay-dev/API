@@ -2,7 +2,6 @@
 
 namespace App\Actions\Auth;
 
-use App\Actions\Auth\RegisterAction;
 use App\DTOs\UserDTO;
 use App\Models\User;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
@@ -17,7 +16,7 @@ class AuthenticateWithAppleAction
     {
         $user = User::where('email', $appleUser->getEmail())->first();
 
-        if (!$user) {
+        if (! $user) {
             $userDto = new UserDTO(
                 name: $appleUser->getName() ?? $appleUser->getNickname() ?? 'Player',
                 email: $appleUser->getEmail(),

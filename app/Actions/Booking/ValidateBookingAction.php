@@ -39,6 +39,7 @@ class ValidateBookingAction
 
             case 'capacity':
                 $used = $existingBookings->sum('units');
+
                 return ($used + $units) <= $resource->capacity;
 
             case 'buffered':
@@ -59,7 +60,7 @@ class ValidateBookingAction
                     })
                     ->exists();
 
-                return !$overlapWithBuffer;
+                return ! $overlapWithBuffer;
 
             default:
                 return false;

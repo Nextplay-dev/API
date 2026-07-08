@@ -1,6 +1,8 @@
 <?php
+
 use App\Http\Controllers\VenueTournamentController;
 use Illuminate\Support\Facades\Route;
+
 Route::controller(VenueTournamentController::class)
     ->scopeBindings()
     ->group(function () {

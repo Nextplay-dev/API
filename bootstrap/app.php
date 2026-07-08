@@ -1,9 +1,15 @@
 <?php
 
+use App\Http\Middleware\AdminAuthenticate;
+use App\Http\Middleware\BrandHeaderAuthenticate;
+use App\Http\Middleware\EnsureUserHasPermission;
+use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\StartSession;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,14 +27,14 @@ return Application::configure(basePath: dirname(__DIR__))
             at: '*'
         );
         $middleware->priority([
-            \Illuminate\Session\Middleware\StartSession::class,
-            \App\Http\Middleware\BrandHeaderAuthenticate::class,
-            \App\Http\Middleware\AdminAuthenticate::class,
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            StartSession::class,
+            BrandHeaderAuthenticate::class,
+            AdminAuthenticate::class,
+            SubstituteBindings::class,
         ]);
         $middleware->alias([
-            'role' => \App\Http\Middleware\EnsureUserHasRole::class,
-            'permission' => \App\Http\Middleware\EnsureUserHasPermission::class,
+            'role' => EnsureUserHasRole::class,
+            'permission' => EnsureUserHasPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -23,8 +23,8 @@ readonly class UserDTO
             email: $request->validated('email'),
             password: $request->validated('password'),
             roles: $request->has('roles') ? $request->validated('roles', []) : null,
-            originReferrer: $request->header('X-Origin-Referrer') 
-                ?? $request->validated('origin_referrer') 
+            originReferrer: $request->header('X-Origin-Referrer')
+                ?? $request->validated('origin_referrer')
                 ?? $request->header('referer'),
             bio: $request->validated('bio'),
             pictureProfileUrl: $request->validated('picture_profile_url')

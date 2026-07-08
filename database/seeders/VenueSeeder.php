@@ -2,18 +2,18 @@
 
 namespace Database\Seeders;
 
-use App\Models\Venue;
+use App\Models\Booking;
 use App\Models\Category;
 use App\Models\Tournament;
 use App\Models\User;
+use App\Models\Venue;
 use Illuminate\Database\Seeder;
 
 class VenueSeeder extends Seeder
 {
-
     public function run(): void
     {
-        \App\Models\Booking::query()->truncate();
+        Booking::query()->truncate();
         Tournament::query()->truncate();
         Venue::query()->truncate();
 
@@ -73,21 +73,21 @@ class VenueSeeder extends Seeder
                 'media' => $item['media'],
                 'category_id' => $category?->id,
                 'latitude' => $item['latitude'],
-                'longitude' => $item['longitude']
+                'longitude' => $item['longitude'],
             ]);
 
             // Create 1 Tournament for each
             $venue->tournaments()->create([
-                'name' => "Tournoi " . $item['game'] . " Open",
+                'name' => 'Tournoi '.$item['game'].' Open',
                 'game' => $item['game'],
                 'media' => $item['media'],
-                'level' => 'Level.' . collect(['Beginner', 'Intermediate', 'Advanced'])->random(),
+                'level' => 'Level.'.collect(['Beginner', 'Intermediate', 'Advanced'])->random(),
                 'start_date' => now()->addDays(rand(5, 30))->format('Y-m-d H:i:s'),
                 'end_date' => now()->addDays(rand(5, 30))->addHours(3)->format('Y-m-d H:i:s'),
             ], ['host' => true])
-            ->bookings()->create([
+                ->bookings()->create([
                 'payment' => rand(0, 1),
-                'user_id' => $user->id
+                'user_id' => $user->id,
             ]);
         }
     }

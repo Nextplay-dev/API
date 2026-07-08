@@ -19,7 +19,7 @@ class ListActivityAvailableSlotRequest extends FormRequest
     {
         $this->merge([
             'from' => Carbon::parse($this->input('from'))->utc(),
-            'to'   => Carbon::parse($this->input('to'))->utc(),
+            'to' => Carbon::parse($this->input('to'))->utc(),
         ]);
     }
 }

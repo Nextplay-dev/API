@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Venue;
 use App\Models\Category;
+use App\Models\Venue;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -11,15 +11,17 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(RolesAndPermissionsSeeder::class);
-        
-        if (Category::count() === 0)
+
+        if (Category::count() === 0) {
             $this->call([
                 CategorySeeder::class,
             ]);
+        }
 
-        if (Venue::count() === 0)
+        if (Venue::count() === 0) {
             $this->call([
                 VenueSeeder::class,
             ]);
+        }
     }
 }

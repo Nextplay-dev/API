@@ -14,7 +14,7 @@ class DeleteMeAction
         DB::transaction(function () use ($user) {
             $user->forceFill([
                 'name' => 'Deleted User',
-                'email' => 'deleted_' . $user->id . '@nextplay.app',
+                'email' => 'deleted_'.$user->id.'@nextplay.app',
                 'password' => Hash::make(Str::random(40)),
                 'bio' => null,
                 'picture_profile_url' => null,

@@ -16,7 +16,7 @@ class UpdateRoleAction
     public function handle(Role $role, RoleDTO $dto): Role
     {
         $authUser = auth()->user();
-        
+
         $userMaxWeight = $authUser->getHighestRoleWeight();
         if ($userMaxWeight <= $role->weight || $userMaxWeight <= $dto->weight) {
             abort(403, 'You do not have enough authority to manage this role or set this weight.');
@@ -34,7 +34,7 @@ class UpdateRoleAction
 
                 $protectedPermissions = $role->permissions()
                     ->get()
-                    ->filter(fn ($p) => !in_array($p->id, $userPermissionIds))
+                    ->filter(fn ($p) => ! in_array($p->id, $userPermissionIds))
                     ->pluck('id')
                     ->toArray();
 

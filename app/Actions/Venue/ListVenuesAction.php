@@ -20,7 +20,7 @@ class ListVenuesAction
             ->allowedFilters([
                 AllowedFilter::exact('category_id'),
                 AllowedFilter::partial('name'),
-                AllowedFilter::custom('search', new WeightedVenueSearchFilter()),
+                AllowedFilter::custom('search', new WeightedVenueSearchFilter),
             ])
             ->allowedSorts([
                 AllowedSort::custom('nearest', new NearestSort),

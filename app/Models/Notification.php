@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\NotificationDeleted;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Str;
@@ -42,7 +43,7 @@ class Notification extends Model
 
         static::deleted(function ($model) {
             if ($model->notifiable_type === User::class) {
-                event(new \App\Events\NotificationDeleted($model->notifiable_id, $model->id));
+                event(new NotificationDeleted($model->notifiable_id, $model->id));
             }
         });
     }

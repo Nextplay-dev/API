@@ -13,25 +13,25 @@ class ActivityPolicy
 
     public function viewAny(User $user, Venue $venue): bool
     {
-        return $user->hasPermissionTo('venue.view') || 
+        return $user->hasPermissionTo('venue.view') ||
             ($user->hasPermissionTo('my-venue.view') && $venue->managers()->where('users.id', $user->id)->exists());
     }
 
     public function view(User $user, Activity $activity): bool
     {
-        return $user->hasPermissionTo('venue.view') || 
+        return $user->hasPermissionTo('venue.view') ||
             ($user->hasPermissionTo('my-venue.view') && $activity->venue->managers()->where('users.id', $user->id)->exists());
     }
 
     public function create(User $user, Venue $venue): bool
     {
-        return $user->hasPermissionTo('venue.create') || 
+        return $user->hasPermissionTo('venue.create') ||
             ($user->hasPermissionTo('my-venue.update') && $venue->managers()->where('users.id', $user->id)->exists());
     }
 
     public function update(User $user, Activity $activity): bool
     {
-        return $user->hasPermissionTo('venue.update') || 
+        return $user->hasPermissionTo('venue.update') ||
             ($user->hasPermissionTo('my-venue.update') && $activity->venue->managers()->where('users.id', $user->id)->exists());
     }
 

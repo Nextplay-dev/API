@@ -23,7 +23,7 @@ class VenuePopularitySort implements Sort
                 $join->on('venue_booking_counts.venue_id', '=', 'venues.id');
             })
             ->orderByRaw('CASE WHEN COALESCE(venue_booking_counts.bookings_count, 0) = 0 THEN 1 ELSE 0 END ASC')
-            ->orderByRaw('COALESCE(venue_booking_counts.bookings_count, 0) ' . $bookingsDirection)
+            ->orderByRaw('COALESCE(venue_booking_counts.bookings_count, 0) '.$bookingsDirection)
             ->orderByRaw('CASE WHEN COALESCE(venue_booking_counts.bookings_count, 0) = 0 THEN RANDOM() ELSE 0 END ASC');
     }
 }

@@ -7,13 +7,15 @@ use App\Services\AvailabilityService;
 use App\Services\BookingValidatorService;
 use App\Services\SlotService;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
-use App\Services\AppleTokenService;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Ecdsa\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
+use SocialiteProviders\Apple\AppleExtendSocialite;
+use SocialiteProviders\Manager\SocialiteWasCalled;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,13 +37,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(fn (User $user, string $ability) => $user->hasPermissionTo($ability) ?: null);
 
         $this->app->bind(Configuration::class, fn () => Configuration::forSymmetricSigner(
-            new Sha256(),
+            new Sha256,
             InMemory::file(storage_path('app/private/apple.p8')),
         ));
 
-        \Illuminate\Support\Facades\Event::listen(
-            \SocialiteProviders\Manager\SocialiteWasCalled::class,
-            \SocialiteProviders\Apple\AppleExtendSocialite::class.'@handle'
+        Event::listen(
+            SocialiteWasCalled::class,
+            AppleExtendSocialite::class.'@handle'
         );
     }
 }

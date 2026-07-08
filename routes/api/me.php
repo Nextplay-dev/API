@@ -1,11 +1,12 @@
 <?php
 
 use App\Http\Controllers\Auth\GetMeStatsController;
-use App\Http\Controllers\Booking\MeBookingController;
 use App\Http\Controllers\Auth\MeController;
-use App\Http\Controllers\Auth\MePreferredCategoriesController;
 use App\Http\Controllers\Auth\MeNotificationController;
+use App\Http\Controllers\Auth\MePreferredCategoriesController;
+use App\Http\Controllers\Auth\StoreMePushTokenController;
 use App\Http\Controllers\Auth\UploadMePictureController;
+use App\Http\Controllers\Booking\MeBookingController;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(MeController::class)
@@ -27,7 +28,11 @@ Route::controller(MeController::class)
             ->middleware('permission:me.update')
             ->name('me.picture.upload');
 
-        Route::controller(MeBookingController::class)->group(function() {
+        Route::post('push-token', StoreMePushTokenController::class)
+            ->middleware('permission:me.update')
+            ->name('me.push-token.store');
+
+        Route::controller(MeBookingController::class)->group(function () {
 
             Route::get('bookings', 'index')
                 ->middleware('permission:me.booking.view')
@@ -58,7 +63,7 @@ Route::controller(MeController::class)
             ->middleware('permission:me.view')
             ->name('me.preffered-categories.index');
 
-        Route::controller(MeNotificationController::class)->group(function() {
+        Route::controller(MeNotificationController::class)->group(function () {
 
             Route::get('notifications', 'index')
                 ->middleware('permission:me.view')

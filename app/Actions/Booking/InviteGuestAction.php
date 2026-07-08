@@ -24,7 +24,7 @@ class InviteGuestAction
             $currentCount = 1 + $booking->guests()->where('status', '!=', 'rejected')->count();
             if ($currentCount >= $booking->resource->capacity) {
                 throw ValidationException::withMessages([
-                    'email' => 'The booking has reached the maximum capacity of the resource (' . $booking->resource->capacity . ' players).',
+                    'email' => 'The booking has reached the maximum capacity of the resource ('.$booking->resource->capacity.' players).',
                 ]);
             }
         }

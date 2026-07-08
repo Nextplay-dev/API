@@ -10,12 +10,15 @@ class ListAvailableSlotsAction
     public function __construct(
         private SlotService $slotService
     ) {}
-    public function handle(ListAvailableSlotDTO $dto) {
+
+    public function handle(ListAvailableSlotDTO $dto)
+    {
         if ($dto->resource) {
             abort_unless(
                 $dto->resource->activities()->whereKey($dto->activity->id)->exists(),
                 404
             );
+
             return $this->slotService
                 ->computeAvailableSlotsForResource($dto->resource, $dto->activity, $dto->from, $dto->to);
         }

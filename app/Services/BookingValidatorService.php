@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Resource;
 use App\Models\Activity;
+use App\Models\Resource;
 use Carbon\Carbon;
 
 class BookingValidatorService
@@ -12,10 +12,10 @@ class BookingValidatorService
     {
         $strategy = $activity->getRule('overlap_strategy', 'none');
         $buffer = $activity->getRule('buffer_minutes', 0);
-        
+
         $checkStart = $start->copy();
         $checkEnd = $end->copy()->addMinutes($buffer);
-        
+
         if ($end <= Carbon::now('UTC')) {
             return false;
         }
@@ -32,6 +32,7 @@ class BookingValidatorService
 
             case 'capacity':
                 $used = $bookings->sum('units');
+
                 return ($used + $units) <= $resource->capacity;
 
             case 'buffered':

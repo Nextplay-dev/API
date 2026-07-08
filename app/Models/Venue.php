@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,12 +11,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Venue extends Model
 {
     protected $fillable = [
-        "name",
-        "address",
-        "media",
-        "category_id",
-        "latitude",
-        "longitude",
+        'name',
+        'address',
+        'media',
+        'category_id',
+        'latitude',
+        'longitude',
     ];
 
     public function activities(): HasMany
@@ -42,7 +43,7 @@ class Venue extends Model
     {
         return $this->hasMany(VenueTournament::class)
             ->whereHas('booking', function ($query) {
-                $query->where('start_at', '>=', \Carbon\Carbon::now('UTC'));
+                $query->where('start_at', '>=', Carbon::now('UTC'));
             });
     }
 

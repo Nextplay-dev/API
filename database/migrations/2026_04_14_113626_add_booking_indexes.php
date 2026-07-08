@@ -50,6 +50,6 @@ return new class extends Migration
             $table->dropIndex('exceptions_resource_time_idx');
         });
 
-        DB::statement("DROP INDEX IF EXISTS bookings_confirmed_overlap_idx");
+        DB::statement('DROP INDEX IF EXISTS bookings_confirmed_overlap_idx');
     }
 };

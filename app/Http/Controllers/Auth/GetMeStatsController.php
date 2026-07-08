@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\Auth;
 
 class GetMeStatsController extends Controller
 {
-    public function __invoke(GetMeStatsAction $action): JsonResponse {
+    public function __invoke(GetMeStatsAction $action): JsonResponse
+    {
         $user = Auth::user();
+
         return response()->json($action->handle($user));
     }
 }

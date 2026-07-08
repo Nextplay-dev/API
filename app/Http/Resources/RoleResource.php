@@ -13,7 +13,7 @@ class RoleResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'is_locked' => $this->is_locked,
-            'weight'    => $this->weight,
+            'weight' => $this->weight,
             'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
         ];
     }

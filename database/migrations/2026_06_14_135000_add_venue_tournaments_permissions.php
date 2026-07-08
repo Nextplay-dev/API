@@ -1,6 +1,8 @@
 <?php
+
 use App\Models\Permission;
 use Illuminate\Database\Migrations\Migration;
+
 return new class extends Migration
 {
     public function up(): void
@@ -15,6 +17,7 @@ return new class extends Migration
             Permission::firstOrCreate(['name' => $name]);
         }
     }
+
     public function down(): void
     {
         $permissions = [

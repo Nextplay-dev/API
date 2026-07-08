@@ -7,7 +7,6 @@ use Illuminate\Support\ServiceProvider;
 
 class BroadcastChannelProvider extends ServiceProvider
 {
-
     public function boot(): void
     {
         Broadcast::routes(['prefix' => 'v1', 'middleware' => ['api', 'auth:sanctum']]);

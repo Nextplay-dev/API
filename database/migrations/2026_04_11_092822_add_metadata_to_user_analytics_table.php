@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Migration to add metadata column to user_analytics table.
  */

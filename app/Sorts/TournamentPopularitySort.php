@@ -20,6 +20,6 @@ class TournamentPopularitySort implements Sort
             ->leftJoinSub($guestsCountSubquery, 'tournament_guest_counts', function ($join) {
                 $join->on('tournament_guest_counts.booking_id', '=', 'venue_tournaments.booking_id');
             })
-            ->orderByRaw('COALESCE(tournament_guest_counts.guests_count, 0) ' . $direction);
+            ->orderByRaw('COALESCE(tournament_guest_counts.guests_count, 0) '.$direction);
     }
 }

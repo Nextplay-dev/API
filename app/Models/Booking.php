@@ -5,12 +5,10 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
 {
-
     protected $fillable = [
         'payment',
         'user_id',
@@ -53,9 +51,10 @@ class Booking extends Model
     {
         return $query->where(function ($q) use ($start, $end) {
             $q->where('start_at', '<', $end)
-              ->where('end_at', '>', $start);
+                ->where('end_at', '>', $start);
         });
     }
+
     public function scopeUpcoming($query)
     {
         return $query->where('end_at', '>=', Carbon::now('UTC'));

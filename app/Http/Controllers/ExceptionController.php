@@ -17,7 +17,8 @@ class ExceptionController extends Controller
 {
     public function index(Resource $resource): JsonResponse
     {
-        Gate::authorize("view", $resource->venue);
+        Gate::authorize('view', $resource->venue);
+
         return ExceptionResource::collection($resource->exceptions)->response();
     }
 

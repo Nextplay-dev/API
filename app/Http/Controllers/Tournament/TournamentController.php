@@ -10,13 +10,15 @@ use Illuminate\Http\JsonResponse;
 
 class TournamentController extends Controller
 {
-    public function index(ListTournamentsAction $action): JsonResponse {
+    public function index(ListTournamentsAction $action): JsonResponse
+    {
         $tournaments = $action->handle();
 
         return VenueTournamentResource::collection($tournaments)->response();
     }
 
-    public function show(VenueTournament $tournament): JsonResponse {
+    public function show(VenueTournament $tournament): JsonResponse
+    {
         $tournament->load(['activity', 'venue', 'booking', 'booking.guests.user']);
 
         return VenueTournamentResource::make($tournament)->response();
