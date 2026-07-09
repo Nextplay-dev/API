@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Actions\Auth\AuthenticateWithAppleAction;
+use App\Actions\Auth\AuthenticateWithAppleMobileAction;
+use App\DTOs\AppleMobileAuthDTO;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\AppleMobileAuthRequest;
 use App\Services\AppleTokenService;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
@@ -65,5 +68,20 @@ class AppleAuthController extends Controller
         }
 
         return redirect()->away($redirectTo.(str_contains($redirectTo, '?') ? '&' : '?').'token='.$token);
+    }
+
+    public function mobile(AppleMobileAuthRequest $request, AuthenticateWithAppleMobileAction $action)
+    {
+        $dto = new AppleMobileAuthDTO(
+            identityToken: $request->validated('identity_token'),
+            authorizationCode: $request->validated('authorization_code'),
+            name: $request->validated('name')
+        );
+
+        $token = $action->handle($dto);
+
+        return response()->json([
+            'token' => $token,
+        ]);
     }
 }

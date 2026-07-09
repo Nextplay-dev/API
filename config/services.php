@@ -48,6 +48,7 @@ return [
         'team_id' => env('APPLE_TEAM_ID'),
         'key_id' => env('APPLE_KEY_ID'),
         'private_key' => env('APPLE_PRIVATE_KEY'),
+        'mobile_client_id' => env('APPLE_MOBILE_CLIENT_ID'),
     ],
 
     'google_maps' => [
