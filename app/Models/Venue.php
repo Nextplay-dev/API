@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Venue extends Model
 {
@@ -17,6 +18,12 @@ class Venue extends Model
         'category_id',
         'latitude',
         'longitude',
+        'is_virtual',
+        'external_booking_url',
+    ];
+
+    protected $casts = [
+        'is_virtual' => 'boolean',
     ];
 
     public function activities(): HasMany
@@ -50,5 +57,10 @@ class Venue extends Model
     public function managers(): BelongsToMany
     {
         return $this->belongsToMany(User::class);
+    }
+
+    public function analytics(): MorphToMany
+    {
+        return $this->morphToMany(UserAnalytic::class, 'attachable', 'user_analytic_attachments');
     }
 }

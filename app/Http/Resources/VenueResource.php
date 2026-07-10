@@ -28,6 +28,15 @@ class VenueResource extends JsonResource
             'activities' => ActivityResource::collection($this->whenLoaded('activities')),
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
+            'is_virtual' => $this->is_virtual,
+            'external_booking_url' => $this->when(
+                $request->user()?->hasPermissionTo('venue.update'),
+                $this->external_booking_url
+            ),
+            'external_booking_clicks_count' => $this->when(
+                $request->user()?->hasPermissionTo('venue.update'),
+                fn () => $this->analytics()->where('action', 'venue.click_external_booking')->count()
+            ),
         ];
     }
 }

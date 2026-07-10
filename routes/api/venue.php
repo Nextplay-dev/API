@@ -38,6 +38,9 @@ Route::controller(VenueController::class)
             Route::delete('/{venue}', 'destroy')
                 ->name('venue.destroy')
                 ->middleware('permission:venue.delete');
+            Route::post('/{venue}/external-booking', 'externalBooking')
+                ->name('venue.external-booking')
+                ->middleware('permission:venue.view');
         });
     });
 

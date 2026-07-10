@@ -24,6 +24,12 @@ class CreateBookingAction
 
         abort_unless($resource->venue_id === $activity->venue_id, 422, 'Mismatched resources and activities');
 
+        if ($resource->venue?->is_virtual) {
+            throw ValidationException::withMessages([
+                'booking' => 'Bookings are not accepted for virtual venues.',
+            ]);
+        }
+
         if (! $this->bookingValidatorService->canBook($resource, $activity, $dto->start_at, $dto->end_at, $dto->units)) {
             throw ValidationException::withMessages([
                 'booking' => 'The selected slot is no longer available or overlaps with an existing booking.',

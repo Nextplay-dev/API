@@ -6,6 +6,7 @@ use App\Actions\Venue\DeleteVenueAction;
 use App\Actions\Venue\ListVenuesAction;
 use App\Actions\Venue\StoreVenueAction;
 use App\Actions\Venue\UpdateVenueAction;
+use App\Actions\Venue\GetVenueExternalBookingAction;
 use App\Http\Requests\StoreVenueRequest;
 use App\Http\Requests\UpdateVenueRequest;
 use App\Http\Resources\VenueResource;
@@ -52,5 +53,13 @@ class VenueController extends Controller
         $action->handle($venue);
 
         return response()->json(null, 204);
+    }
+
+    public function externalBooking(Venue $venue, GetVenueExternalBookingAction $action): JsonResponse
+    {
+        Gate::authorize('view', $venue);
+        $url = $action->handle(auth()->user(), $venue);
+
+        return response()->json(['url' => $url]);
     }
 }
