@@ -16,6 +16,7 @@ class UpdateVenueRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'address' => ['sometimes', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
             'media' => ['sometimes', 'string', 'max:255'],
             'category_id' => ['sometimes', 'exists:categories,id'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],

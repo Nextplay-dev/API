@@ -16,6 +16,7 @@ class StoreVenueRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'address' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
             'media' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'exists:categories,id'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],

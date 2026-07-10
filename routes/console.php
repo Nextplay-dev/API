@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\BatchNotifyToScoreBookingsJob;
+use App\Jobs\IngestVenuesJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -14,3 +15,4 @@ Artisan::command('bookings:batch-scoring', function () {
 })->purpose('Dispatch the batch scoring notification job');
 
 Schedule::job(new BatchNotifyToScoreBookingsJob)->everyMinute();
+Schedule::job(new IngestVenuesJob)->weekly();

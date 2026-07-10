@@ -13,6 +13,7 @@ class VenueResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'address' => $this->address,
+            'description' => $this->description,
             'media' => $this->media,
             'tournaments_count' => $this->whenCounted('tournaments'),
             'tournaments' => VenueTournamentResource::collection($this->whenLoaded('tournaments')),

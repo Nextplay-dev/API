@@ -20,6 +20,8 @@
         "league/flysystem-aws-s3-v3": "^3.0",
         "socialiteproviders/apple": "^5.10",
         "spatie/laravel-query-builder": "^6.3",
+        "symfony/css-selector": "^8.1",
+        "symfony/dom-crawler": "^8.1",
         "tightenco/ziggy": "^2.4",
         "yaza/laravel-google-drive-storage": "^5.0"
     },
