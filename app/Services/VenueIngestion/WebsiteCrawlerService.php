@@ -23,19 +23,19 @@ class WebsiteCrawlerService
 
             $title = '';
             try {
-                $title = $crawler->filter('title')->first()->text();
+                $title = self::cleanText($crawler->filter('title')->first()->text());
             } catch (\InvalidArgumentException) {}
 
             $description = '';
             try {
-                $description = $crawler->filter('meta[name="description"]')->first()->attr('content') ?? '';
+                $description = self::cleanText($crawler->filter('meta[name="description"]')->first()->attr('content') ?? '');
             } catch (\InvalidArgumentException) {}
 
             $headings = [];
             $crawler->filter('h1, h2')->each(function (Crawler $node) use (&$headings) {
                 $text = trim($node->text());
                 if (!empty($text)) {
-                    $headings[] = $text;
+                    $headings[] = self::cleanText($text);
                 }
             });
 
@@ -43,7 +43,7 @@ class WebsiteCrawlerService
             try {
                 $bodyText = $crawler->filter('body')->first()->text();
                 $bodyText = preg_replace('/\s+/', ' ', $bodyText);
-                $bodyText = mb_substr(trim($bodyText), 0, 1000);
+                $bodyText = self::cleanText(mb_substr(trim($bodyText), 0, 1000));
             } catch (\InvalidArgumentException) {}
 
             return [
@@ -57,5 +57,12 @@ class WebsiteCrawlerService
         } catch (\Exception) {
             return null;
         }
+    }
+
+    private static function cleanText(string $text): string
+    {
+        $text = iconv('UTF-8', 'UTF-8//IGNORE//TRANSLIT', $text);
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        return $text;
     }
 }

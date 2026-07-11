@@ -44,6 +44,16 @@ class ListAnalyticsOverviewAction
             ->orderByDesc('clicks_count')
             ->get();
 
+        $venueVisits = DB::table('user_analytic_attachments')
+            ->join('user_analytics', 'user_analytics.id', '=', 'user_analytic_attachments.user_analytic_id')
+            ->join('venues', 'venues.id', '=', 'user_analytic_attachments.attachable_id')
+            ->where('user_analytic_attachments.attachable_type', Venue::class)
+            ->where('user_analytics.action', 'venue_visit')
+            ->select('venues.id', 'venues.name', DB::raw('count(user_analytics.id) as visits_count'))
+            ->groupBy('venues.id', 'venues.name')
+            ->orderByDesc('visits_count')
+            ->get();
+
         $query = UserAnalytic::with('user')->orderByDesc('created_at');
 
         if ($actionFilter) {
@@ -57,6 +67,7 @@ class ListAnalyticsOverviewAction
             'top_actions' => $topActions,
             'timeline' => $timeline,
             'venue_clicks' => $venueClicks,
+            'venue_visits' => $venueVisits,
             'logs' => $logs,
         ];
     }

@@ -4,138 +4,160 @@ namespace App\Services\VenueIngestion;
 
 use App\Models\Category;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AIClassifierService
 {
-    public function classify(string $title, string $description, array $headings, string $bodyText): array
+    public function classify(array $item, string $title, string $description, array $headings, string $bodyText): array
     {
         $categories = Category::pluck('name')->toArray();
         $categoriesList = implode(', ', $categories);
 
-        $headingsStr = implode(' | ', $headings);
+        $venueName = $item['name'] ?? '';
+        $websiteUrl = $item['website'] ?? '';
+        $address = $item['address'] ?? '';
+
+        $safeName = preg_replace('/[^\P{C}\n\r]+/u', '', $venueName);
+        $safeTitle = preg_replace('/[^\P{C}\n\r]+/u', '', $title);
+        $safeDescription = preg_replace('/[^\P{C}\n\r]+/u', '', $description);
+        
+        $headingsList = implode(', ', array_map(fn($h) => preg_replace('/[^\P{C}\n\r]+/u', '', $h), $headings));
+        $headingsList = mb_substr($headingsList, 0, 1000);
+        
+        $safeBodyText = preg_replace('/[^\P{C}\n\r]+/u', '', $bodyText);
+        $bodyExcerpt = mb_substr($safeBodyText, 0, 3000);
+
         $prompt = <<<PROMPT
 Tu es un assistant expert dans la catégorisation des établissements de loisirs et de sport.
-Analyse les informations suivantes du site web :
-Titre : {$title}
-Description Méta : {$description}
-En-têtes : {$headingsStr}
-Extrait de texte de la page : {$bodyText}
 
-Ta tâche consiste à classer cet établissement dans EXACTEMENT UNE catégorie principale, à fournir une liste des activités disponibles, une courte description (maximum 200 caractères) et à déterminer s'il s'agit d'un établissement de sport/loisirs/bien-être commercial et réservable.
+Voici les informations sur l'établissement cible :
+- Nom : {$safeName}
+- Site web : {$websiteUrl}
+- Adresse : {$address}
 
-La catégorie principale doit être EXACTEMENT l'une de ces valeurs : [{$categoriesList}]. Si aucune ne correspond parfaitement, utilise la correspondance la plus proche ou "Team".
-Les activités doivent correspondre à une liste des sports ou des activités proposés dans cet établissement.
+Voici le contenu textuel extrait de son site web par notre crawler (attention, ce contenu peut être incomplet, vide, ou contenir des erreurs comme 'JavaScript required' ou des bannières de cookies si le site utilise React/Vue ou des protections) :
+- Titre de la page : {$safeTitle}
+- Description Meta : {$safeDescription}
+- En-têtes trouvées : {$headingsList}
+- Extrait du contenu textuel :
+{$bodyExcerpt}
 
-Tu DOIS répondre avec un objet JSON valide sous ce format :
+Tâche :
+Détermine la catégorie principale, les activités proposées, une description et si l'établissement est commercial/réservable.
+IMPORTANT : Si le contenu extrait du site web est vide, inutile, ou s'il s'agit d'un message d'erreur/cookies (ex: site React/Vue non chargé), utilise tes connaissances générales sur cet établissement précis (grâce à son nom, adresse et site web) pour répondre au mieux.
+
+Détermine si cet établissement est un établissement de sport, loisir ou bien-être COMMERCIAL et RÉSERVABLE par le public. Il doit s'agir d'un lieu physique où des clients peuvent réserver et pratiquer une activité (ex: club de padel, salle d'escalade, bowling, golf, karting, escape game, laser game, salle de sport privée, etc.).
+
+Exclus les lieux suivants :
+- Gymnases municipaux, complexes sportifs publics, stades municipaux, city-stades
+- Salles polyvalentes ou omnisports municipales
+- Tout lieu géré par une administration publique ou une association non-commerciale
+- Magasins de détail (vêtements, équipement, alimentation, etc.)
+- Centres aquatiques municipales
+
+Extrais les informations suivantes :
+1. La catégorie principale (exactement l'une des valeurs suivantes : [{$categoriesList}])
+2. La liste des activités proposées
+3. Une courte description (max 200 caractères)
+
+Réponds avec un objet JSON valide sous ce format :
 {
   "category": "SelectedCategoryName",
   "activities": ["Activity1", "Activity2"],
-  "description": "Courte description en 1 à 2 phrases de l'établissement.",
+  "description": "Courte description en 1 à 2 phrases.",
   "suitable": true
 }
+
+Le champ "suitable" doit être true UNIQUEMENT si l'établissement est un lieu de sport/loisir commercial et réservable. Dans le doute, mets false.
 PROMPT;
 
-        $apiKey = env('GEMINI_API_KEY');
+        $fallbackDescription = empty($safeDescription) ? $safeName : $safeDescription;
 
-        if ($apiKey) {
-            try {
-                $response = Http::withHeaders(['Content-Type' => 'application/json'])
-                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={$apiKey}", [
-                        'contents' => [
-                            [
-                                'parts' => [
-                                    ['text' => $prompt]
-                                ]
-                            ]
-                        ],
-                        'generationConfig' => [
-                            'responseMimeType' => 'application/json'
-                        ]
-                    ]);
+        $apiKey = config('services.openai.key');
 
-                if ($response->successful()) {
-                    $resJson = $response->json();
-                    $text = $resJson['candidates'][0]['content']['parts'][0]['text'] ?? '';
-                    $result = json_decode($text, true);
-
-                    if (isset($result['category']) && in_array($result['category'], $categories)) {
-                        return [
-                            'category' => $result['category'],
-                            'activities' => $result['activities'] ?? [],
-                            'description' => $result['description'] ?? mb_substr($description, 0, 200),
-                            'suitable' => (bool) ($result['suitable'] ?? true),
-                        ];
-                    }
-                }
-            } catch (\Exception) {}
+        if (!$apiKey) {
+            Log::warning('[AIClassifier] No OpenAI API key configured');
+            return ['suitable' => false, 'reject_reason' => 'no_api_key', 'description' => $fallbackDescription];
         }
 
-        return $this->fallbackClassify($title, $description, $headings, $bodyText, $categories);
-    }
+        try {
+            $payload = [
+                'model' => 'gpt-4.1-nano',
+                'input' => $prompt,
+                'temperature' => 0.1,
+            ];
 
-    protected function fallbackClassify(string $title, string $description, array $headings, string $bodyText, array $categories): array
-    {
-        $fullText = strtolower($title . ' ' . $description . ' ' . implode(' ', $headings) . ' ' . $bodyText);
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ])->timeout(90)->post('https://api.openai.com/v1/responses', $payload);
 
-        $matchedCategory = 'Team';
-        $matchedActivities = [];
-        $suitable = false;
+            if (!$response->successful()) {
+                Log::warning('[AIClassifier] OpenAI API error', [
+                    'status' => $response->status(),
+                    'body' => mb_substr($response->body(), 0, 500),
+                ]);
+                return ['suitable' => false, 'reject_reason' => 'api_error', 'description' => $fallbackDescription];
+            }
 
-        $keywords = [
-            'padel' => ['category' => 'Padel', 'activities' => ['Padel']],
-            'tennis' => ['category' => 'Tennis', 'activities' => ['Tennis']],
-            'badminton' => ['category' => 'Badminton', 'activities' => ['Badminton']],
-            'squash' => ['category' => 'Badminton', 'activities' => ['Squash']],
-            'football' => ['category' => 'Football', 'activities' => ['Football', 'Foot 5']],
-            'soccer' => ['category' => 'Football', 'activities' => ['Foot 5']],
-            'basketball' => ['category' => 'Basketball', 'activities' => ['Basketball']],
-            'volleyball' => ['category' => 'Volleyball', 'activities' => ['Volleyball']],
-            'bowling' => ['category' => 'Bowling', 'activities' => ['Bowling']],
-            'swimming' => ['category' => 'Swimming', 'activities' => ['Swimming']],
-            'piscine' => ['category' => 'Swimming', 'activities' => ['Swimming']],
-            'golf' => ['category' => 'Golf', 'activities' => ['Golf']],
-            'cycling' => ['category' => 'Cycling', 'activities' => ['Cycling']],
-            'velo' => ['category' => 'Cycling', 'activities' => ['Cycling']],
-            'yoga' => ['category' => 'Yoga', 'activities' => ['Yoga']],
-            'pilates' => ['category' => 'Yoga', 'activities' => ['Yoga']],
-            'boxing' => ['category' => 'Boxing', 'activities' => ['Boxing']],
-            'boxe' => ['category' => 'Boxing', 'activities' => ['Boxing']],
-            'fitness' => ['category' => 'Fitness', 'activities' => ['Fitness', 'Gym']],
-            'muscu' => ['category' => 'Fitness', 'activities' => ['Fitness']],
-            'escalade' => ['category' => 'Climbing', 'activities' => ['Escalade', 'Climbing']],
-            'climbing' => ['category' => 'Climbing', 'activities' => ['Climbing']],
-            'kart' => ['category' => 'Karting', 'activities' => ['Karting']],
-            'laser' => ['category' => 'Laser Game', 'activities' => ['Laser Game']],
-            'spa' => ['category' => 'Wellness', 'activities' => ['Spa', 'Wellness']],
-            'sauna' => ['category' => 'Wellness', 'activities' => ['Wellness']],
-        ];
-
-        foreach ($keywords as $key => $mapping) {
-            if (str_contains($fullText, $key)) {
-                $suitable = true;
-                if (in_array($mapping['category'], $categories)) {
-                    $matchedCategory = $mapping['category'];
-                }
-                foreach ($mapping['activities'] as $act) {
-                    if (!in_array($act, $matchedActivities)) {
-                        $matchedActivities[] = $act;
+            $resJson = $response->json();
+            $text = '';
+            foreach ($resJson['output'] ?? [] as $outputItem) {
+                if (($outputItem['type'] ?? '') === 'message') {
+                    foreach ($outputItem['content'] ?? [] as $content) {
+                        if (($content['type'] ?? '') === 'output_text' && !empty($content['text'])) {
+                            $text = $content['text'];
+                            break 2;
+                        }
                     }
                 }
             }
+
+            if (empty($text)) {
+                Log::warning('[AIClassifier] Empty response - raw structure', [
+                    'output_keys' => array_keys($resJson['output'] ?? []),
+                    'output_types' => array_map(fn($o) => $o['type'] ?? 'unknown', $resJson['output'] ?? []),
+                ]);
+                return ['suitable' => false, 'reject_reason' => 'empty_response', 'description' => $fallbackDescription];
+            }
+
+            $result = json_decode($text, true);
+
+            if (!is_array($result) || !isset($result['category'])) {
+                // Try extracting JSON from markdown code block
+                if (preg_match('/```(?:json)?\s*(\{.*?\})\s*```/s', $text, $m)) {
+                    $result = json_decode($m[1], true);
+                }
+            }
+
+            if (!is_array($result) || !isset($result['category'])) {
+                Log::warning('[AIClassifier] Invalid JSON response from OpenAI', [
+                    'raw' => mb_substr($text, 0, 300),
+                ]);
+                return ['suitable' => false, 'reject_reason' => 'invalid_response', 'description' => $fallbackDescription];
+            }
+
+            $category = in_array($result['category'], $categories, true)
+                ? $result['category']
+                : 'Team';
+
+            Log::info('[AIClassifier] Success', [
+                'category' => $category,
+                'suitable' => $result['suitable'] ?? true,
+                'venue_name' => $safeName,
+            ]);
+
+            return [
+                'category' => $category,
+                'activities' => $result['activities'] ?? [],
+                'description' => $result['description'] ?? $fallbackDescription,
+                'suitable' => (bool) ($result['suitable'] ?? true),
+            ];
+        } catch (\Exception $e) {
+            Log::error('[AIClassifier] Exception', [
+                'message' => $e->getMessage(),
+            ]);
+            return ['suitable' => false, 'reject_reason' => 'exception', 'description' => $fallbackDescription];
         }
-
-        if (empty($matchedActivities)) {
-            $matchedActivities[] = $matchedCategory;
-        }
-
-        $desc = !empty($description) ? $description : (!empty($title) ? $title : "Loisir et sport partenaire.");
-        $desc = mb_substr($desc, 0, 200);
-
-        return [
-            'category' => $matchedCategory,
-            'activities' => $matchedActivities,
-            'description' => $desc,
-            'suitable' => $suitable,
-        ];
     }
 }

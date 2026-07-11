@@ -48,6 +48,9 @@ Route::prefix('/v1')->group(function () {
     Route::prefix('analytics')
         ->middleware('auth:sanctum')
         ->group(base_path('routes/api/analytics.php'));
+    Route::prefix('workflows')
+        ->middleware('auth:sanctum')
+        ->group(base_path('routes/api/workflow.php'));
     Route::apiResource('venues.resources', ResourceController::class)
         ->middleware('auth:sanctum')
         ->shallow();

@@ -25,6 +25,12 @@ class UpdateVenueRequest extends FormRequest
             'manager_ids.*' => ['exists:users,id'],
             'is_virtual' => ['sometimes', 'boolean'],
             'external_booking_url' => ['nullable', 'string', 'url', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'website' => ['nullable', 'string', 'url', 'max:255'],
+            'opening_hours' => ['nullable', 'array'],
+            'opening_hours.*.day_of_week' => ['required_with:opening_hours', 'integer', 'between:0,6'],
+            'opening_hours.*.opens_at' => ['required_with:opening_hours', 'string', 'date_format:H:i:s'],
+            'opening_hours.*.closes_at' => ['required_with:opening_hours', 'string', 'date_format:H:i:s'],
         ];
     }
 }

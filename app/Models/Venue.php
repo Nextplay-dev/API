@@ -17,7 +17,10 @@ class Venue extends Model
         'description',
         'media',
         'website',
+        'phone',
         'osm_id',
+        'google_place_id',
+        'google_photo_reference',
         'category_id',
         'latitude',
         'longitude',
@@ -32,6 +35,31 @@ class Venue extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(Activity::class);
+    }
+
+    public function openingHours(): HasMany
+    {
+        return $this->hasMany(VenueOpeningHour::class);
+    }
+
+    public function getHoursForDate(Carbon $date): \Illuminate\Support\Collection
+    {
+        $exceptional = $this->openingHours()
+            ->where('exceptional_date', $date->toDateString())
+            ->orderBy('opens_at')
+            ->get();
+
+        if ($exceptional->isNotEmpty()) {
+            return $exceptional;
+        }
+
+        $dayOfWeek = (int) $date->format('N') - 1;
+
+        return $this->openingHours()
+            ->where('day_of_week', $dayOfWeek)
+            ->whereNull('exceptional_date')
+            ->orderBy('opens_at')
+            ->get();
     }
 
     public function resources(): HasMany

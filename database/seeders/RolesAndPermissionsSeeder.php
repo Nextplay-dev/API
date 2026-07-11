@@ -65,6 +65,7 @@ class RolesAndPermissionsSeeder extends Seeder
         'venue-tournament.delete',
         'analytics.view',
         'back-office.administration.analytics',
+        'back-office.administration.workflows',
     ];
 
     private const ROLE_PERMISSIONS = [

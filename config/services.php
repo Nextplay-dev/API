@@ -55,6 +55,14 @@ return [
         'key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+    ],
+
+    'deepseek' => [
+        'key' => env('DEEPSEEK_API_KEY'),
+    ],
+
     'expo' => [
         'access_token' => env('EXPO_ACCESS_TOKEN'),
     ],

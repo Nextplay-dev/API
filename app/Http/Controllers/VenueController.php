@@ -6,6 +6,7 @@ use App\Actions\Venue\DeleteVenueAction;
 use App\Actions\Venue\ListVenuesAction;
 use App\Actions\Venue\StoreVenueAction;
 use App\Actions\Venue\UpdateVenueAction;
+use App\Actions\Analytics\LogUserAnalyticAction;
 use App\Actions\Venue\GetVenueExternalBookingAction;
 use App\Http\Requests\StoreVenueRequest;
 use App\Http\Requests\UpdateVenueRequest;
@@ -23,10 +24,17 @@ class VenueController extends Controller
         return VenueResource::collection($venues)->response();
     }
 
-    public function show(Venue $venue): JsonResponse
+    public function show(Venue $venue, LogUserAnalyticAction $logAnalytic): JsonResponse
     {
         Gate::authorize('view', $venue);
-        $venue->load(['tournaments', 'tournaments.booking', 'ongoingTournaments', 'ongoingTournaments.booking', 'category', 'managers', 'resources', 'activities']);
+        $venue->load(['tournaments', 'tournaments.booking', 'ongoingTournaments', 'ongoingTournaments.booking', 'category', 'managers', 'resources', 'activities', 'openingHours']);
+
+        $logAnalytic->handle(
+            auth()->user(),
+            'venue_visit',
+            [],
+            [$venue]
+        );
 
         return VenueResource::make($venue)->response();
     }
@@ -35,6 +43,7 @@ class VenueController extends Controller
     {
         Gate::authorize('create', Venue::class);
         $venue = $action->handle($request);
+        $venue->load('openingHours');
 
         return VenueResource::make($venue)->response()->setStatusCode(201);
     }
@@ -43,6 +52,7 @@ class VenueController extends Controller
     {
         Gate::authorize('update', $venue);
         $venue = $action->handle($request, $venue);
+        $venue->load('openingHours');
 
         return VenueResource::make($venue)->response();
     }

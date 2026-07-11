@@ -23,6 +23,8 @@ class GetVenueExternalBookingAction
             [$venue]
         );
 
-        return $venue->external_booking_url;
+        $url = $venue->external_booking_url;
+        $separator = parse_url($url, PHP_URL_QUERY) ? '&' : '?';
+        return $url . $separator . 'utm_source=Nextplay';
     }
 }

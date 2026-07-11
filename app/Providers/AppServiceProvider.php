@@ -45,5 +45,17 @@ class AppServiceProvider extends ServiceProvider
             SocialiteWasCalled::class,
             AppleExtendSocialite::class.'@handle'
         );
+
+        Event::listen(\Workflow\Events\WorkflowStarted::class, function (\Workflow\Events\WorkflowStarted $event) {
+            app(\App\Services\Workflow\WorkflowBroadcastService::class)->notifyCreated((int) $event->workflowId);
+        });
+
+        Event::listen(\Workflow\Events\WorkflowCompleted::class, function (\Workflow\Events\WorkflowCompleted $event) {
+            app(\App\Services\Workflow\WorkflowBroadcastService::class)->notifyUpdated((int) $event->workflowId, true);
+        });
+
+        Event::listen(\Workflow\Events\WorkflowFailed::class, function (\Workflow\Events\WorkflowFailed $event) {
+            app(\App\Services\Workflow\WorkflowBroadcastService::class)->notifyUpdated((int) $event->workflowId, true);
+        });
     }
 }

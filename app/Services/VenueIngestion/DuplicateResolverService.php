@@ -8,6 +8,13 @@ class DuplicateResolverService
 {
     public function findDuplicate(array $venueData): ?Venue
     {
+        if (!empty($venueData['google_place_id'])) {
+            $duplicate = Venue::where('google_place_id', $venueData['google_place_id'])->first();
+            if ($duplicate) {
+                return $duplicate;
+            }
+        }
+
         if (!empty($venueData['osm_id'])) {
             $duplicate = Venue::where('osm_id', $venueData['osm_id'])->first();
             if ($duplicate) {

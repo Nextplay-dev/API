@@ -7,9 +7,22 @@ use App\Actions\Location\SearchGoogleCityAutocompleteAction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+use App\Actions\Location\SearchGooglePlaceAutocompleteAction;
+
 class LocationController extends Controller
 {
     public function autocomplete(Request $request, SearchGoogleCityAutocompleteAction $action): JsonResponse
+    {
+        $query = trim((string) $request->string('query'));
+
+        if ($query === '') {
+            return response()->json(['data' => []]);
+        }
+
+        return response()->json(['data' => $action->handle($query)]);
+    }
+
+    public function placesAutocomplete(Request $request, SearchGooglePlaceAutocompleteAction $action): JsonResponse
     {
         $query = trim((string) $request->string('query'));
 
